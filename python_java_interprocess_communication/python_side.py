@@ -2,19 +2,19 @@ import sys
 import os
 
 
-def run_read():
+def run_read(*args, **kwargs):
     import subprocess
-
     p = subprocess.Popen(["java", "MyClass"], stdin=subprocess.PIPE)
-    p.stdin.writelines([
-        "line 1",
-        "line 2",
-        "done"
-    ])
+    p.stdin.writelines(
+        args + [
+            "line 1",
+            "line 2",
+            "done"
+        ])
     p.stdin.flush()
 
 
-def run_write():
+def run_write(*args, **kwargs):
     pass
 
 
@@ -29,6 +29,8 @@ if __name__ == '__main__':
 
     command = argv[1]
     if command not in COMMANDS:
-        commands = ",".join(COMMANDS)
-        print(f"Invalid command:{command}, expected: {commands}")
+        valid_commands = ",".join(COMMANDS)
+        print(f"Invalid command:{command}, expected: {valid_commands}")
         exit(2)
+
+    functions[COMMANDS.index(command)](*argv[2:])
