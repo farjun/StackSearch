@@ -1,36 +1,41 @@
+import select
 import sys
 import os
+import subprocess
+import time
+from typing import Union
+
+class FDListener:
+    def __init__(self, fd_in: Union[int,str], fd_out: Union[int,str]):
+        self.fd_in = fd_in
+        self.fd_out = fd_out
+        self.in_io = os.fdopen(int(self.fd_in), "r+")
+        self.out_io =os.fdopen(int(self.fd_out), "r+")
+
+    def listen(self, sleep_between_reads_secs=1, terminate_after=60):
+
+        count = 0
+        to_terminate = False
+
+        while count < terminate_after and not to_terminate:
+            line = None
+            if self.in_io.isatty():
+                line = self.in_io.readline()
+            if line:
+                print(f"got line: {line}")
+                to_terminate = line.lower() == "done"
+            else:
+                print(f"no new input on sec: {count * sleep_between_reads_secs}")
+            time.sleep(sleep_between_reads_secs)
+            count += 1
 
 
-def run_read(*args, **kwargs):
-    import subprocess
-    p = subprocess.Popen(["java", "MyClass"], stdin=subprocess.PIPE)
-    p.stdin.writelines(
-        args + [
-            "line 1",
-            "line 2",
-            "done"
-        ])
-    p.stdin.flush()
-
-
-def run_write(*args, **kwargs):
-    pass
-
-
-COMMANDS = ["read", "write"]
-functions = [run_read, run_write]
 
 if __name__ == '__main__':
-    argv = sys.argv
-    if len(argv) < 2:
-        print("Usage: python_side command args...")
+    if len(sys.argv) != 2:
+        print("Usage: python_side -|number")
         exit(2)
+    # fd = sys.argv[1]
+    r, w = os.pipe()
 
-    command = argv[1]
-    if command not in COMMANDS:
-        valid_commands = ",".join(COMMANDS)
-        print(f"Invalid command:{command}, expected: {valid_commands}")
-        exit(2)
-
-    functions[COMMANDS.index(command)](*argv[2:])
+    FDListener(r,w).listen()
