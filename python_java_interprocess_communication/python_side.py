@@ -47,6 +47,6 @@ def restore_stdin(stdin):
 
 
 if __name__ == '__main__':
-    #backup = resolve_stdin()
+    backup = resolve_stdin()
     Listener().listen()
-    #restore_stdin(backup)
+    restore_stdin(backup)
