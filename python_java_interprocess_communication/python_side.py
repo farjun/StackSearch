@@ -15,14 +15,15 @@ def tag(word):
 
 
 class Listener:
+    TAG_COMMAND = "tag:"
 
     def listen(self):
         s = sys.stdin.readline().strip()
         while s not in ['|']:
             s = s.lower()
 
-            if s.startswith("tag"):
-                s_tag = tag(s)
+            if s.startswith(Listener.TAG_COMMAND):
+                s_tag = tag(s[len(Listener.TAG_COMMAND):])
                 sys.stdout.write(str(s_tag))
                 sys.stdout.flush()
 
