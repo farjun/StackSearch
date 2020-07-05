@@ -34,7 +34,7 @@ class FDListener:
 
         count = 0
         to_terminate = False
-
+        LOGGER.write("Start listen")
         while count < terminate_after and not to_terminate:
             line = None
             if self.in_io.isatty():
@@ -48,6 +48,7 @@ class FDListener:
                 print(f"no new input on sec: {count * sleep_between_reads_secs}")
             time.sleep(sleep_between_reads_secs)
             count += 1
+        LOGGER.write("Done listen")
 
 
 if __name__ == '__main__':
