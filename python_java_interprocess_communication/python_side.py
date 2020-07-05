@@ -18,7 +18,6 @@ class Logger():
         self.log.close()
 
 
-LOGGER = Logger()
 
 
 class FDListener:
@@ -56,4 +55,6 @@ if __name__ == '__main__':
         print("Usage: python_side -|number")
         exit(2)
 
+    LOGGER = Logger()
     FDListener("-", "-").listen()
+    LOGGER.close()
