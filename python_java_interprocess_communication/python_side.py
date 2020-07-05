@@ -5,12 +5,13 @@ def model(word: str):
     base = ord('a')
     histogram = [0] * (ord('z') - base + 1)
     word = word.lower()
-    for c in word.lower():
+    for c in frozenset(word.lower()):
         histogram[ord(c) - base] = word.count(c)
     return histogram
 
 
 def tag(word):
+    # Mock example, will be replaced by TF trained model.
     return model(word)
 
 
