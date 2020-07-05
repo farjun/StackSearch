@@ -22,13 +22,12 @@ class Listener:
         s = sys.stdin.readline().strip()
         while s not in ['|']:
             s = s.lower()
-
             if s.startswith(Listener.TAG_COMMAND):
                 s_tag = tag(s[len(Listener.TAG_COMMAND):])
-                sys.stdout.write(str(s_tag))
+                sys.stdout.write(str(s_tag) + "\n")
                 sys.stdout.flush()
             else:
-                sys.stdout.write(s)
+                sys.stdout.write(s+"\n")
                 sys.stdout.flush()
             s = sys.stdin.readline().strip()
 
@@ -48,6 +47,6 @@ def restore_stdin(stdin):
 
 
 if __name__ == '__main__':
-    backup = resolve_stdin()
+    #backup = resolve_stdin()
     Listener().listen()
-    restore_stdin(backup)
+    #restore_stdin(backup)
