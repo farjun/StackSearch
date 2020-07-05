@@ -27,7 +27,9 @@ class Listener:
                 s_tag = tag(s[len(Listener.TAG_COMMAND):])
                 sys.stdout.write(str(s_tag))
                 sys.stdout.flush()
-
+            else:
+                sys.stdout.write(s)
+                sys.stdout.flush()
             s = sys.stdin.readline().strip()
 
 
