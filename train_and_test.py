@@ -60,8 +60,10 @@ def get_ckpt_manager(restore_last=True):
     return ckpt_manager
 
 
-def reprortProgress(writer, step_loss):
-    print(".",end="")
+def reprortProgress(writer, metric, step):
+    with writer.as_default():
+        tf.summary.scalar("loss", metric.result(), step=step)
+    # print(".",end="")
 
 
 @tf.function
@@ -93,10 +95,10 @@ def train(epochs=1, epochs_offset=0, progress_per_step=1,
         for data in ds:
             train_step(data, train_loss)
             if step % progress_per_step == 0:
-                reprortProgress(writer, train_loss)
+                reprortProgress(writer, train_loss, step)
             step += 1
     ckpt_save_path = ckpt_manager.save()
 
 
 if __name__ == '__main__':
-    train(epochs=100, restore_last=False)
+    train(epochs=1000, restore_last=False, progress_per_step=100)
