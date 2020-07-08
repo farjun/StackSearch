@@ -1,4 +1,5 @@
-from tqdm.auto import tqdm
+# from tqdm.auto import tqdm
+from tqdm import tqdm
 import os
 from datetime import datetime
 import tensorflow as tf
@@ -16,7 +17,7 @@ optimizer = tf.keras.optimizers.Adam()
 ### Done Setup ###
 
 def example_get_data_generator(featureExtractor: FeatureExtractor):
-    size = 100
+    size = 1000
     stop_prob = 0.1
     words = []
     random_chr = lambda: chr(random.randint(ord('a'), ord('z')))
@@ -91,7 +92,6 @@ def train(epochs=1, epochs_offset=0, progress_per_step=1,
     for epoch in tqdm(range(epochs_offset, epochs + epochs_offset), desc="train epochs"):
         if epoch % save_result_per_epoch == 0:
             ckpt_save_path = ckpt_manager.save()
-            print()
         for data in ds:
             train_step(data, train_loss)
             if step % progress_per_step == 0:
