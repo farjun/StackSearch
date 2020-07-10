@@ -29,3 +29,5 @@ class HistogramFeatureExtractor(FeatureExtractor):
             if ord(c) - ord('a') in range(len(histogram)):
                 histogram[ord(c) - ord('a')] += 1
         return histogram
+
+

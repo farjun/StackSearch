@@ -19,17 +19,16 @@ class Post(XmlModel):
         self.comments = list()
 
         self.id = attributes.get('Id')
-        self.PostTypeId = attributes.get('PostTypeId')
-        self.AcceptedAnswerId = attributes.get('AcceptedAnswerId')
-        self.CreationDate = attributes.get('CreationDate')
-        self.Score = attributes.get('Score')
-        self.ViewCount = attributes.get('ViewCount')
-        self.Body = attributes.get('Body')
-        self.Tags = attributes.get('Tags')
-        self.Tags = attributes.get('AnswerCount')
-        self.Tags = attributes.get('CommentCount')
-        self.Tags = attributes.get('FavoriteCount')
-        self.Tags = attributes.get('Tags')
+        self.postTypeId = attributes.get('PostTypeId')
+        self.acceptedAnswerId = attributes.get('AcceptedAnswerId')
+        self.creationDate = attributes.get('CreationDate')
+        self.score = attributes.get('Score')
+        self.viewCount = attributes.get('ViewCount')
+        self.body = attributes.get('Body')
+        self.tags = attributes.get('Tags')
+        self.answerCount = attributes.get('AnswerCount')
+        self.commentCount = attributes.get('CommentCount')
+        self.favoriteCount = attributes.get('FavoriteCount')
 
     def __str__(self) -> str:
         return "Post( id = " + str(self.id) + ")"
