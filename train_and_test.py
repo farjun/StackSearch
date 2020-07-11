@@ -1,6 +1,6 @@
 import numpy as np
 # from tqdm.auto import tqdm # Uncomment for Colab-Notebook
-from tqdm import tqdm # Comment for Colab-Notebook
+from tqdm import tqdm  # Comment for Colab-Notebook
 import os
 from datetime import datetime
 import tensorflow as tf
@@ -13,6 +13,8 @@ output_dim = 10
 featureExtractor = HistogramFeatureExtractor()
 model = models.BasicFCN.get_FCN_model(featureExtractor.get_feature_dim(), output_dim)
 optimizer = tf.keras.optimizers.Adam()
+
+
 ### Done Setup ###
 
 def example_get_data_generator(featureExtractor: FeatureExtractor):
@@ -30,6 +32,7 @@ def example_get_data_generator(featureExtractor: FeatureExtractor):
     def to_generator():
         for features in as_features:
             yield features
+
     return to_generator
 
 
@@ -66,15 +69,17 @@ def reprortProgress(writer, metric, step):
 @tf.function
 def train_step(data, metric):
     loss_object = tf.keras.losses.MeanSquaredError()
-    reg_loss = tf.keras.losses.MeanSquaredError()
-    reg_lambda = 1
+    reg_loss_object = tf.keras.losses.MeanSquaredError()
+    reg_lambda = 1e-2
     with tf.GradientTape(persistent=True) as tape:
         encoded_data = model.encode(data, training=True)
         same = model.decode(encoded_data, training=True)
-        loss = loss_object(data, same) + reg_lambda * reg_loss(encoded_data, tf.ones_like(encoded_data))
+        ae_loss = loss_object(data, same)
+        reg_loss = reg_lambda * (-1 * reg_loss_object(tf.zeros_like(encoded_data), encoded_data))
+        loss = ae_loss + reg_loss
     gradients = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-    metric(loss)
+    metric(ae_loss)
 
 
 def train(epochs=1, epochs_offset=0, progress_per_step=1,
@@ -108,10 +113,13 @@ def encode(word: str):
     ckpt_manager = ckpt_manager or get_ckpt_manager(True)
     encode = model.encode(feature)[0]
     encode = encode.numpy()
-    encode[encode > 0] = 1
-    encode[encode < 0] = 0
+    mask = encode > 0
+    encode[mask] = 1
+    encode[np.logical_not(mask)] = 0
     return encode
 
+
 if __name__ == '__main__':
-    train(epochs=1000, restore_last=False, progress_per_step=100)
-    encode("abc")
+    train(epochs=100, restore_last=False, progress_per_step=100)
+    to_encode = "word"
+    print(f"encode({to_encode}): {encode(to_encode)}")
