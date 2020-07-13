@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 # from tqdm.auto import tqdm # Uncomment for Colab-Notebook
 from tqdm import tqdm  # Comment for Colab-Notebook
@@ -140,6 +142,17 @@ def encode(word: str):
     feature = np.expand_dims(np.array(featureExtractor.get_feature(word)), 0)
     ckpt_manager = ckpt_manager or get_ckpt_manager(True)
     encode = model.encode(feature)[0]
+    encode = encode.numpy()
+    mask = encode > 0
+    encode[mask] = 1
+    encode[np.logical_not(mask)] = 0
+    return encode
+
+def encode_batch(words:List[str]):
+    global ckpt_manager
+    feature = np.array(featureExtractor.get_feature_batch(words))
+    ckpt_manager = ckpt_manager or get_ckpt_manager(True)
+    encode = model.encode(feature)
     encode = encode.numpy()
     mask = encode > 0
     encode[mask] = 1
