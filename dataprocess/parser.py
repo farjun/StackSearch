@@ -40,8 +40,11 @@ class XmlParser(object):
     def getGenerator(self):
 
         postsIter = iter(self)
+
         def gen():
-            yield next(postsIter)
+            for data in postsIter:
+                yield data
+            # yield next(postsIter)
 
         return gen
     def __iter__(self):
