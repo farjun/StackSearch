@@ -1,4 +1,4 @@
-
+import re
 class XmlModel(object):
     pass
 
@@ -21,7 +21,7 @@ class Post(XmlModel):
         self.creationDate = attributes.get('CreationDate')
         self.score = attributes.get('Score')
         self.viewCount = attributes.get('ViewCount')
-        self.body = attributes.get('Body')
+        self.body : str = attributes.get('Body')
         self.tags = attributes.get('Tags')
         self.answerCount = attributes.get('AnswerCount')
         self.commentCount = attributes.get('CommentCount')
