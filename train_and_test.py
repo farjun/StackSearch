@@ -52,8 +52,8 @@ def get_data_set_example():
 
 
 def get_partial_data_set():
-    xmlParser = XmlParser("data\partial\Posts.xml", featureExtractor=HistogramPostFeatureExtractor())
-    ds = tf.data.Dataset.from_generator(xmlParser.getGenerator(), (tf.int32))
+    xmlParser = XmlParser("data\partial\Posts.xml")
+    ds = tf.data.Dataset.from_generator(xmlParser.getWordsGenerator( featureExtractor=HistogramPostFeatureExtractor() ), (tf.int32))
     ds = ds \
         .cache() \
         .batch(4) \
