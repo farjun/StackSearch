@@ -7,11 +7,12 @@ import tensorflow as tf
 from Features.FeatureExtractors import FeatureExtractor, HistogramFeatureExtractor, HistogramPostFeatureExtractor
 import random
 import models.BasicFCN
+from dataprocess.parser import XmlParser
+from hparams import HParams
 
 #### Setup ####
-from dataprocess.parser import XmlParser
 
-output_dim = 10
+output_dim = HParams.OUTPUT_DIM
 featureExtractor = HistogramFeatureExtractor()
 model = models.BasicFCN.get_FCN_model(featureExtractor.get_feature_dim(), output_dim)
 optimizer = tf.keras.optimizers.Adam()
@@ -47,17 +48,17 @@ def get_data_set_example():
         .prefetch(tf.data.experimental.AUTOTUNE)
     return ds
 
+
 def get_partial_data_set():
-    xmlParser = XmlParser("data\partial\Posts.xml", featureExtractor= HistogramPostFeatureExtractor())
-    ds = tf.data.Dataset.from_generator(
-        xmlParser.getGenerator(),
-        (tf.int32))
+    xmlParser = XmlParser("data\partial\Posts.xml", featureExtractor=HistogramPostFeatureExtractor())
+    ds = tf.data.Dataset.from_generator(xmlParser.getGenerator(), (tf.int32))
     ds = ds \
         .cache() \
         .batch(4) \
         .shuffle(10000) \
         .prefetch(tf.data.experimental.AUTOTUNE)
     return ds
+
 
 def get_ckpt_manager(restore_last=True):
     checkpoint_path = f"./checkpoints/train_{featureExtractor.get_feature_dim()}_{output_dim}"
@@ -69,6 +70,7 @@ def get_ckpt_manager(restore_last=True):
         save_path = ckpt_manager.latest_checkpoint or tf.train.latest_checkpoint(checkpoint_path)
         if save_path is not None:
             ckpt.restore(save_path).expect_partial()
+            # expect_partial due to that we don't need the decode part later on.
             print('Latest checkpoint restored!!')
     return ckpt_manager
 
@@ -76,7 +78,6 @@ def get_ckpt_manager(restore_last=True):
 def reprortProgress(writer, metric, step):
     with writer.as_default():
         tf.summary.scalar("loss", metric.result(), step=step)
-    # print(".",end="")
 
 
 @tf.function
@@ -95,9 +96,23 @@ def train_step(data, metric):
     metric(ae_loss)
 
 
+def resolve_data_set(dataset_type: str):
+    default = "example"
+    types = {
+        default: get_data_set_example,
+        "partial": get_partial_data_set
+    }
+    if dataset_type is None:
+        dataset_type = default
+    if dataset_type not in types:
+        print(f"dataset_type:{dataset_type} not in supported keys: {types.keys()}")
+        raise NotImplementedError
+    return types[dataset_type]()
+
+
 def train(epochs=1, epochs_offset=0, progress_per_step=1,
-          save_result_per_epoch=5, restore_last=True):
-    ds = get_partial_data_set()
+          save_result_per_epoch=5, restore_last=True, dataset_type: str = None):
+    ds = resolve_data_set(dataset_type)
     ckpt_manager = get_ckpt_manager(restore_last)
     now_as_string = datetime.now().strftime("%m_%d_%H_%M_%S")  # current date and time
     writer_path = os.path.join("summary", "train", now_as_string)
