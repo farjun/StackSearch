@@ -1,5 +1,7 @@
 from typing import List
 
+from dataprocess.models import Post
+
 
 class FeatureExtractor:
     def get_feature_dim(self):
@@ -31,3 +33,17 @@ class HistogramFeatureExtractor(FeatureExtractor):
         return histogram
 
 
+class HistogramPostFeatureExtractor(FeatureExtractor):
+
+    def __init__(self):
+        pass
+
+    def get_feature_dim(self):
+        return ord('z') - ord('a') + 1
+
+    def get_feature(self, post: Post):
+        histogram = [0] * self.get_feature_dim()
+        for c in post.body:
+            if ord(c) - ord('a') in range(len(histogram)):
+                histogram[ord(c) - ord('a')] += 1
+        return histogram

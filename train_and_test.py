@@ -4,11 +4,13 @@ from tqdm import tqdm  # Comment for Colab-Notebook
 import os
 from datetime import datetime
 import tensorflow as tf
-from Features.FeatureExtractors import FeatureExtractor, HistogramFeatureExtractor
+from Features.FeatureExtractors import FeatureExtractor, HistogramFeatureExtractor, HistogramPostFeatureExtractor
 import random
 import models.BasicFCN
 
 #### Setup ####
+from dataprocess.parser import XmlParser
+
 output_dim = 10
 featureExtractor = HistogramFeatureExtractor()
 model = models.BasicFCN.get_FCN_model(featureExtractor.get_feature_dim(), output_dim)
@@ -45,6 +47,17 @@ def get_data_set_example():
         .prefetch(tf.data.experimental.AUTOTUNE)
     return ds
 
+def get_partial_data_set():
+    xmlParser = XmlParser("data\partial\Posts.xml", featureExtractor= HistogramPostFeatureExtractor())
+    ds = tf.data.Dataset.from_generator(
+        xmlParser.getGenerator(),
+        (tf.int32))
+    ds = ds \
+        .cache() \
+        .batch(4) \
+        .shuffle(10000) \
+        .prefetch(tf.data.experimental.AUTOTUNE)
+    return ds
 
 def get_ckpt_manager(restore_last=True):
     checkpoint_path = f"./checkpoints/train_{featureExtractor.get_feature_dim()}_{output_dim}"
@@ -84,7 +97,7 @@ def train_step(data, metric):
 
 def train(epochs=1, epochs_offset=0, progress_per_step=1,
           save_result_per_epoch=5, restore_last=True):
-    ds = get_data_set_example()
+    ds = get_partial_data_set()
     ckpt_manager = get_ckpt_manager(restore_last)
     now_as_string = datetime.now().strftime("%m_%d_%H_%M_%S")  # current date and time
     writer_path = os.path.join("summary", "train", now_as_string)

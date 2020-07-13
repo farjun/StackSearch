@@ -1,5 +1,6 @@
 import xml.etree.cElementTree as etree
 
+from Features.FeatureExtractors import FeatureExtractor
 from dataprocess.models import Post
 from io import StringIO
 from html.parser import HTMLParser
@@ -26,20 +27,34 @@ class MLStripper(HTMLParser):
 
 
 class XmlParser(object):
-    def __init__(self, postsFilePath, CommentsFilePath = None):
+    def __init__(self, postsFilePath, featureExtractor : FeatureExtractor = None, CommentsFilePath = None):
         self.CommentsFilePath = CommentsFilePath
+        self.featureExtractor = featureExtractor
         self.postsFilePath = postsFilePath
+
 
     def preproccessAttributes(self, post: Post):
         post.body = MLStripper.strip_tags(post.body)
         return post
 
+    def getGenerator(self):
+
+        postsIter = iter(self)
+        def gen():
+            yield next(postsIter)
+
+        return gen
     def __iter__(self):
+        postAnswers = list()
         for event, element in etree.iterparse(self.postsFilePath):
             if element.tag == "row":
-                yield self.preproccessAttributes(Post(element.attrib))
+                if element.attrib.get('PostTypeId') == '2':
+                    postAnswers.append(element.attrib)
+                else:
+                    res = self.preproccessAttributes(Post(element.attrib, postAnswers))
+                    if self.featureExtractor:
+                        res = self.featureExtractor.get_feature(res)
+                    yield res
 
+                    postAnswers = list()
 
-xmlParser = XmlParser("data\Posts.xml")
-for post in xmlParser:
-    print(post)
