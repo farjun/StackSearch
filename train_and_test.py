@@ -45,7 +45,7 @@ def get_data_set_example():
     ds = tf.data.Dataset.from_generator(example_get_data_generator(featureExtractor), (tf.int32))
     ds = ds \
         .cache() \
-        .batch(4) \
+        .batch(HParams.BATCH_SIZE) \
         .shuffle(10000) \
         .prefetch(tf.data.experimental.AUTOTUNE)
     return ds
@@ -56,7 +56,7 @@ def get_partial_data_set():
     ds = tf.data.Dataset.from_generator(xmlParser.getWordsGenerator(featureExtractor=featureExtractor), (tf.int32))
     ds = ds \
         .cache() \
-        .batch(4) \
+        .batch(HParams.BATCH_SIZE) \
         .shuffle(10000) \
         .prefetch(tf.data.experimental.AUTOTUNE)
     return ds
