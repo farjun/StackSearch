@@ -53,7 +53,7 @@ def get_data_set_example():
 
 def get_partial_data_set():
     xmlParser = XmlParser("data\partial\Posts.xml")
-    ds = tf.data.Dataset.from_generator(xmlParser.getWordsGenerator( featureExtractor=HistogramPostFeatureExtractor() ), (tf.int32))
+    ds = tf.data.Dataset.from_generator(xmlParser.getWordsGenerator(featureExtractor=featureExtractor), (tf.int32))
     ds = ds \
         .cache() \
         .batch(4) \
@@ -148,7 +148,8 @@ def encode(word: str):
     encode[np.logical_not(mask)] = 0
     return encode
 
-def encode_batch(words:List[str]):
+
+def encode_batch(words: List[str]):
     global ckpt_manager
     feature = np.array(featureExtractor.get_feature_batch(words))
     ckpt_manager = ckpt_manager or get_ckpt_manager(True)
