@@ -8,6 +8,7 @@ import heapq
 class Index:
 
     def __init__(self, index_dir_path, disk_chunk_size=1000, distance_func=distance.hamming, key_extractor=lambda _: _[0],):
+
         self.key_extractor = key_extractor  # can be adapted to the key structure
         self.main_index_path = os.path.join(index_dir_path, "main_index")
         self.blocks_index_path = os.path.join(index_dir_path, "blocks_index")
@@ -80,7 +81,7 @@ class Index:
             self._last_block_end = 0
         with open(self.main_index_path, 'ab') as f:
             self.block.sort()
-            print('DUMPED------', self.block)
+            # print('DUMPED------{}'.format(self.block))
             serialized = pickle.dumps(self.block, protocol=pickle.HIGHEST_PROTOCOL)
             f.write(serialized)
             self.blocks_start_index.append(self._last_block_end)
@@ -88,7 +89,7 @@ class Index:
             self.in_disk_chunk_index.append(0)
         self.block = []
 
-    def _load_block(self, block_num, index_path=None, blocks_start_index=None):
+    def _load_block(self, block_num):
         index_path = self.sorted_main_index_path
         blocks_start_index = self.merged_blocks_start_index
         ind = block_num + 1
@@ -133,12 +134,12 @@ class Index:
             while True:
                 chunks_file_objects = self._get_chunks_file_objects()
                 chunks = self._get_chunks(chunks_file_objects, merger_chunk_size)
-                print('CHUNKS TO MERGE----', chunks)
+                # print('CHUNKS TO MERGE----{}'.format(chunks))
                 if len(chunks) == 0:
                     pickle.dump(self.merged_blocks_start_index, merged_blocks_index_file)
                     return
                 merged_block = list(heapq.merge(*chunks, key=self.key_extractor))
-                print('MERGED--------', merged_block)
+                print('MERGED--------{}'.format(merged_block))
                 serialized = pickle.dumps(merged_block, protocol=pickle.HIGHEST_PROTOCOL)
                 sorted_main_index_file.write(serialized)
                 self.merged_blocks_start_index.append((last_block_end, self.key_extractor(merged_block[0])))
