@@ -13,11 +13,17 @@ class MyTestCase(unittest.TestCase):
         self.index.insert([1, 1, 1, 0], "http://stack/omer")
         self.index.insert([1, 0, 1, 0], "http://stack.ori")
         self.index.insert([1, 1, 1, 1], "http://dump.point")
-        self.assertEqual(len(self.index.search([1, 1, 1, 1], dist_limit=0.5)), 2)
-        self.assertEqual(len(self.index.search([1, 0, 1, 1], dist_limit=0)), 0)
-        self.assertEqual(len(self.index.search([1, 0, 1, 0], dist_limit=0)), 1)
+        self.index.insert([1, 0, 0, 0], "http://dump.point")
+        self.index.insert([1, 0, 0, 1], "http://dump.point")
+        self.index.insert([1, 1, 0, 1], "http://dump.point")
 
+        self.index.sort()
+        self.index.print()
+        self.assertEqual(len(self.index.brute_force_search([1, 0, 1, 1], dist_limit=0)), 0)
+        self.assertEqual(len(self.index.brute_force_search([1, 0, 1, 0], dist_limit=0)), 1)
 
+        self.assertEqual(len(self.index.search([1, 0, 1, 0], result_size_limit=3)), 3)  # binary search
+        print(list(self.index.search([1, 0, 1, 0], result_size_limit=3)))
 
 if __name__ == '__main__':
     unittest.main()
