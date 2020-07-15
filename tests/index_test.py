@@ -17,6 +17,7 @@ class MyTestCase(unittest.TestCase):
         self.index.insert([1, 0, 0, 0], "http://dump.point")
         self.index.insert([1, 0, 0, 1], "http://dump.point")
         self.index.insert([1, 1, 0, 1], "http://dump.point")
+        self.index.insert([0, 1, 0, 1], "http://dump.point")
 
         self.index.sort()
         self.index.print()

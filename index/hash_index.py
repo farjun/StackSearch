@@ -77,6 +77,8 @@ class Index:
                                key=lambda k: self.distance_func(self.key_extractor(k), key))
 
     def _dump_block(self):
+        if len(self.block) == 0:
+            return
         if not hasattr(self, "_last_block_end"):
             self._last_block_end = 0
         with open(self.main_index_path, 'ab') as f:
@@ -126,6 +128,7 @@ class Index:
         return chunks
 
     def sort(self):
+        self._dump_block()  # dumping any leftovers
         sorted_main_index_file = open(self.sorted_main_index_path, 'ab')
         merged_blocks_index_file = open(self.merged_blocks_index_path, 'wb')
         last_block_end = 0
