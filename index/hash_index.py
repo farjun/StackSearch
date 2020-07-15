@@ -60,6 +60,7 @@ class Index:
         arr = self.merged_blocks_start_index
         left = 0
         right = len(arr) - 1
+        mid_ind = 0
         while left <= right:
             mid = left + right / 2
             mid_ind = int(mid)
@@ -71,7 +72,8 @@ class Index:
                 break
     #  TODO make it smarter in finding surrounding values
         self._load_block(mid_ind)
-        return heapq.nsmallest(result_size_limit, self.block, key=lambda k: self.distance_func(self.key_extractor(k), key))
+        return heapq.nsmallest(result_size_limit, self.block,
+                               key=lambda k: self.distance_func(self.key_extractor(k), key))
 
     def _dump_block(self):
         with open(self.main_index_path, 'ab') as f:
