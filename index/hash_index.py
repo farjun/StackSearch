@@ -14,6 +14,9 @@ class Index:
         self.blocks_index_path = os.path.join(index_dir_path, "blocks_index")
         self.sorted_main_index_path = os.path.join(index_dir_path, "sorted_index")
         self.merged_blocks_index_path = os.path.join(index_dir_path, "merged_blocks_index")
+        if not os.path.exists(index_dir_path):
+            os.makedirs(index_dir_path)
+
         if not os.path.exists(self.sorted_main_index_path):
             with open(self.sorted_main_index_path, 'wb') as f:
                 f.write(b"")  # create file

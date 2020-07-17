@@ -45,7 +45,6 @@ class XmlParser(object):
                 res = post.body.split()
                 if featureExtractor:
                     res = featureExtractor.get_feature_batch(res)
-
                 for word in res:
                     yield word
 

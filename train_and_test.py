@@ -52,7 +52,7 @@ def get_data_set_example():
 
 
 def get_partial_data_set():
-    xmlParser = XmlParser("data\partial\Posts.xml")
+    xmlParser = XmlParser(HParams.filePath)
     ds = tf.data.Dataset.from_generator(xmlParser.getWordsGenerator(featureExtractor=featureExtractor), (tf.int32))
     ds = ds \
         .cache() \

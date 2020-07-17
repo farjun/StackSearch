@@ -37,6 +37,9 @@ class Post(XmlModel):
     def addComment(self, comment: Comment):
         self.comments.append(comment)
 
+    def addAnswer(self, answer):
+        self.answers.append(answer)
+
     def getAcceptedAnswer(self):
         if self.answers:
             for ans in self.answers:
@@ -44,6 +47,9 @@ class Post(XmlModel):
                     return ans
 
         return None
+
+    def toWordsArray(self):
+        return self.body.split()
 
 class Answer(Post):
     def __init__(self, attributes):
