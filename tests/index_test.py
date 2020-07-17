@@ -9,6 +9,8 @@ class MyTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp_dir = TemporaryDirectory()
         self.index = Index(self.tmp_dir.name, disk_chunk_size=2)
+        self.perm_index = Index("./index", disk_chunk_size=2)
+
 
     def test_search_and_insert(self):
         self.index.insert([1, 1, 1, 0], "http://stack/omer")
@@ -18,6 +20,9 @@ class MyTestCase(unittest.TestCase):
         self.index.insert([1, 0, 0, 1], "http://dump.point")
         self.index.insert([1, 1, 0, 1], "http://dump.point")
         self.index.insert([0, 1, 0, 1], "http://dump.point")
+
+        self.perm_index.insert([0, 1, 0, 1], "http://dump.point")
+        self.perm_index.sort()
 
         self.index.sort()
         self.index.print()
