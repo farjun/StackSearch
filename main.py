@@ -19,7 +19,11 @@ def saveIndex():
     indexPath = HParams.filePath.rsplit('\\', 1)[0] + "\\index\\"
     hashIndex = Index(indexPath)
     for post in xmlParser:
-        postSimHash = np.average(encode_batch(post.toWordsArray()), axis=0)
+        wordsArr = post.toWordsArray()
+        assert wordsArr[0] != wordsArr[1]
+        encodedVecs = encode_batch(wordsArr)
+        assert np.all(encodedVecs[0] != encodedVecs[1])
+        postSimHash = np.average(encodedVecs, axis=0)
         hashIndex.insert(post.id, val=postSimHash)
 
 if __name__ == '__main__':
