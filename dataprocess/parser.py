@@ -34,7 +34,7 @@ class XmlParser(object):
 
     def preproccessAttributes(self, post: Post):
         post.body = MLStripper.strip_tags(post.body)
-        post.body = re.sub("[^a-zA-Z0-9 \n]+", "", post.body)
+        post.body = re.sub("[^a-zA-Z0-9 \n]+", "", post.body).lower()
         return post
 
     def getWordsGenerator(self, featureExtractor : FeatureExtractor = None):
