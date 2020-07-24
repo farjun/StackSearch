@@ -7,46 +7,46 @@ import heapq
 
 class Index:
 
-    def __init__(self, index_dir_path, disk_chunk_size=1000, distance_func=distance.hamming, key_extractor=lambda _: _[0],):
+    def __init__(self, index_dir_path, disk_chunk_size=1000, distance_func=distance.hamming, key_extractor=lambda _: _[1],):
 
         self.key_extractor = key_extractor  # can be adapted to the key structure
-        self.main_index_path = os.path.join(index_dir_path, "main_index")
+        self.index_path = os.path.join(index_dir_path, "main_index")
         self.blocks_index_path = os.path.join(index_dir_path, "blocks_index")
         self.sorted_main_index_path = os.path.join(index_dir_path, "sorted_index")
         self.merged_blocks_index_path = os.path.join(index_dir_path, "merged_blocks_index")
+        self._last_block_end = 0
+        self.blocks_start_index = []
+
         if not os.path.exists(index_dir_path):
             os.makedirs(index_dir_path)
 
-        if not os.path.exists(self.sorted_main_index_path):
-            with open(self.sorted_main_index_path, 'wb') as f:
-                f.write(b"")  # create file
-        if not os.path.exists(self.main_index_path):
-            with open(self.main_index_path, 'wb') as f:
-                f.write(b"")  # create file
-        if not os.path.exists(self.blocks_index_path):
-            with open(self.blocks_index_path, 'wb') as f:
-                f.write(b"")  # create file
-            self.blocks_start_index = []
-        if not os.path.exists(self.merged_blocks_index_path):
-            with open(self.merged_blocks_index_path, 'wb') as f:
-                f.write(b"")  # create file
-            self.merged_blocks_start_index = []
-        else:
+        with open(self.sorted_main_index_path, 'wb') as f:
+            f.write(b"")  # create file
+        with open(self.index_path, 'wb') as f:
+            f.write(b"")  # create file
+        with open(self.blocks_index_path, 'wb') as f:
+            f.write(b"")  # create file
+
+        self.merged_blocks_start_index = []
+        if os.path.exists(self.merged_blocks_index_path):
             with open(self.merged_blocks_index_path, "rb") as f:
                 self.merged_blocks_start_index = pickle.load(f)
+        else:
+            with open(self.merged_blocks_index_path, 'wb') as f:
+                f.write(b"")  # create file
 
         self.distance_func = distance_func
         self.block = []
-        self.disk_chunk_size = disk_chunk_size
+        self.max_block_size = disk_chunk_size
         self.in_disk_chunk_index = []
 
     def clean_index(self):
-        os.remove(self.main_index_path)
+        os.remove(self.index_path)
         os.remove(self.blocks_index_path)
 
     def insert(self, key, val):
         self.block.append((key, val))
-        if len(self.block) > self.disk_chunk_size:
+        if len(self.block) > self.max_block_size:
             self._dump_block()
 
     def brute_force_search(self, key, dist_limit=0, result_size_limit=10):
@@ -74,6 +74,7 @@ class Index:
                 left = mid + 1
             else:
                 break
+
     #  TODO make it smarter in finding surrounding values
         self._load_block(mid_ind)
         return heapq.nsmallest(result_size_limit, self.block,
@@ -82,11 +83,9 @@ class Index:
     def _dump_block(self):
         if len(self.block) == 0:
             return
-        if not hasattr(self, "_last_block_end"):
-            self._last_block_end = 0
-        with open(self.main_index_path, 'ab') as f:
+
+        with open(self.index_path, 'ab') as f:
             self.block.sort()
-            # print('DUMPED------{}'.format(self.block))
             serialized = pickle.dumps(self.block, protocol=pickle.HIGHEST_PROTOCOL)
             f.write(serialized)
             self.blocks_start_index.append(self._last_block_end)
@@ -111,7 +110,7 @@ class Index:
     def _get_chunks_file_objects(self):
         file_objects = []
         for block_start in self.blocks_start_index:
-            f = open(self.main_index_path, 'rb')
+            f = open(self.index_path, 'rb')
             f.seek(block_start)
             file_objects.append(f)
         return file_objects
@@ -135,22 +134,20 @@ class Index:
         sorted_main_index_file = open(self.sorted_main_index_path, 'ab')
         merged_blocks_index_file = open(self.merged_blocks_index_path, 'wb')
         last_block_end = 0
-        merger_chunk_size = ceil(self.disk_chunk_size/max(1, len(self.blocks_start_index)))
+        merger_chunk_size = ceil(self.max_block_size / max(1, len(self.blocks_start_index)))
         try:
             while True:
                 chunks_file_objects = self._get_chunks_file_objects()
                 chunks = self._get_chunks(chunks_file_objects, merger_chunk_size)
-                # print('CHUNKS TO MERGE----{}'.format(chunks))
                 if len(chunks) == 0:
-                    pickle.dump(self.merged_blocks_start_index, merged_blocks_index_file)
-                    return
+                    break
                 merged_block = list(heapq.merge(*chunks, key=self.key_extractor))
-                print('MERGED--------{}'.format(merged_block))
                 serialized = pickle.dumps(merged_block, protocol=pickle.HIGHEST_PROTOCOL)
                 sorted_main_index_file.write(serialized)
                 self.merged_blocks_start_index.append((last_block_end, self.key_extractor(merged_block[0])))
                 last_block_end = sorted_main_index_file.tell()
         finally:
+            pickle.dump(self.merged_blocks_start_index, merged_blocks_index_file)
             for f in chunks_file_objects:
                 f.close()
             self.clean_index()
