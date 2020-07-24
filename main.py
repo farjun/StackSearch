@@ -1,6 +1,7 @@
 from dataprocess.parser import XmlParser
 from hparams import HParams
 from index.hash_index import Index
+from index.index import MinHashIndex
 from train_and_test import encode, encode_batch
 import numpy as np
 import os
@@ -18,17 +19,25 @@ def train_example(*args, **kwargs):
 def saveIndex():
     xmlParser = XmlParser(HParams.filePath)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    hashIndex = Index(indexPath, disk_chunk_size=10)
+    #index = Index(indexPath, disk_chunk_size=10)
+    index = MinHashIndex(indexPath, overwrite=True)
     for post in xmlParser:
         wordsArr = post.toWordsArray()
-        # assert wordsArr[0] != wordsArr[1]
         encodedVecs = encode_batch(wordsArr)
-        # assert np.all(encodedVecs[0] != encodedVecs[1])
         postSimHash = np.average(encodedVecs, axis=0)
-        hashIndex.insert(post.id, val=postSimHash)
-    hashIndex.sort()
+        index.insert(post.id, postSimHash)
+    index.sort()
+    index.save()
+    return index
+
+def runSearch(index):
+    wordsArr = ["Python", "numpy"]
+    encodedVecs = encode_batch(wordsArr)
+    simHash = np.average(encodedVecs, axis=0)
+    print(index.search(simHash))
 
 if __name__ == '__main__':
     # train_example(epochs=1000, restore_last=False, progress_per_step=100)
     #train_partial(epochs=1000, restore_last=True, progress_per_step=100)
-    saveIndex()
+    index = saveIndex()
+    runSearch(index)
