@@ -3,12 +3,31 @@ from math import ceil
 import pickle
 import os
 import heapq
+from logging import error
+
+
+def erase_on_raised_exception(f):
+    def new_f(self, *args, **kwargs):
+        try:
+            return f(self, *args, **kwargs)
+        except Exception as e:
+            error('Raised from {}:'.format(f))
+            error(e)
+            erase_flag = getattr(self, 'to_erase_on_raised_exception', False)
+            if erase_flag:
+                self.erase_all()
+            raise e
+
+    return new_f
 
 
 class Index:
 
-    def __init__(self, index_dir_path, disk_chunk_size=1000, distance_func=distance.hamming, key_extractor=lambda _: _[1],):
 
+    def __init__(self, index_dir_path, disk_chunk_size=1000, distance_func=distance.hamming,
+                 key_extractor=lambda _: _[0], to_erase_on_raised_exception=True):
+
+        self.to_erase_on_raised_exception = to_erase_on_raised_exception
         self.key_extractor = key_extractor  # can be adapted to the key structure
         self.index_path = os.path.join(index_dir_path, "main_index")
         self.blocks_index_path = os.path.join(index_dir_path, "blocks_index")
@@ -40,10 +59,20 @@ class Index:
         self.max_block_size = disk_chunk_size
         self.in_disk_chunk_index = []
 
-    def clean_index(self):
-        os.remove(self.index_path)
-        os.remove(self.blocks_index_path)
+    def erase_all(self):
+        self.clean_index()
+        if os.path.exists(self.merged_blocks_index_path):
+            os.remove(self.merged_blocks_index_path)
+        if os.path.exists(self.sorted_main_index_path):
+            os.remove(self.sorted_main_index_path)
 
+    def clean_index(self):
+        if os.path.exists(self.blocks_index_path):
+            os.remove(self.blocks_index_path)
+        if os.path.exists(self.main_index_path):
+            os.remove(self.main_index_path)
+
+    @erase_on_raised_exception
     def insert(self, key, val):
         self.block.append((key, val))
         if len(self.block) > self.max_block_size:
@@ -80,6 +109,7 @@ class Index:
         return heapq.nsmallest(result_size_limit, self.block,
                                key=lambda k: self.distance_func(self.key_extractor(k), key))
 
+    @erase_on_raised_exception
     def _dump_block(self):
         if len(self.block) == 0:
             return
@@ -93,6 +123,7 @@ class Index:
             self.in_disk_chunk_index.append(0)
         self.block = []
 
+    @erase_on_raised_exception
     def _load_block(self, block_num):
         index_path = self.sorted_main_index_path
         blocks_start_index = self.merged_blocks_start_index
@@ -107,6 +138,7 @@ class Index:
             if len(serialized_block) > 0:
                 self.block = pickle.loads(serialized_block)
 
+    @erase_on_raised_exception
     def _get_chunks_file_objects(self):
         file_objects = []
         for block_start in self.blocks_start_index:
@@ -115,6 +147,7 @@ class Index:
             file_objects.append(f)
         return file_objects
 
+    @erase_on_raised_exception
     def _get_chunks(self, file_objects, merger_chunk_size):
         chunks = []
         for i in range(len(self.blocks_start_index)):
@@ -129,6 +162,7 @@ class Index:
                     self.in_disk_chunk_index[i] += merger_chunk_size
         return chunks
 
+    @erase_on_raised_exception
     def sort(self):
         self._dump_block()  # dumping any leftovers
         sorted_main_index_file = open(self.sorted_main_index_path, 'ab')
@@ -138,6 +172,8 @@ class Index:
         try:
             while True:
                 chunks_file_objects = self._get_chunks_file_objects()
+                if chunks_file_objects is None:
+                    break
                 chunks = self._get_chunks(chunks_file_objects, merger_chunk_size)
                 if len(chunks) == 0:
                     break
@@ -146,10 +182,14 @@ class Index:
                 sorted_main_index_file.write(serialized)
                 self.merged_blocks_start_index.append((last_block_end, self.key_extractor(merged_block[0])))
                 last_block_end = sorted_main_index_file.tell()
+        except Exception as e:
+            print(e)
         finally:
             pickle.dump(self.merged_blocks_start_index, merged_blocks_index_file)
-            for f in chunks_file_objects:
-                f.close()
+            if chunks_file_objects is not None:
+                for f in chunks_file_objects:
+                    f.close()
+                    
             self.clean_index()
             sorted_main_index_file.close()
             merged_blocks_index_file.close()
