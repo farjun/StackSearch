@@ -55,9 +55,9 @@ def get_partial_data_set():
     xmlParser = XmlParser(HParams.filePath)
     ds = tf.data.Dataset.from_generator(xmlParser.getWordsGenerator(featureExtractor=featureExtractor), (tf.int32))
     ds = ds \
-        .cache() \
+        .cache(os.path.join("cache", "partial_cache")) \
         .batch(HParams.BATCH_SIZE) \
-        .shuffle(10000) \
+        .shuffle(1000) \
         .prefetch(tf.data.experimental.AUTOTUNE)
     return ds
 
@@ -65,7 +65,7 @@ def get_partial_data_set():
 def get_ckpt_manager(restore_last=True):
     checkpoint_path = f"./checkpoints/train_{featureExtractor.get_feature_dim()}_{output_dim}"
     ckpt = tf.train.Checkpoint(model=model, optimizer=optimizer)
-    ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
+    ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=HParams.CKPT_MAX_TO_KEEP)
 
     # if a checkpoint exists, restore the latest checkpoint.
     if restore_last:
@@ -82,16 +82,20 @@ def reprortProgress(writer, metric, step):
         tf.summary.scalar("loss", metric.result(), step=step)
 
 
+def reg_loss_func(encoded_data):
+    reg_loss_object = tf.keras.losses.MeanSquaredError()
+    return -1 * reg_loss_object(tf.zeros_like(encoded_data), encoded_data)
+
+
 @tf.function
 def train_step(data, metric):
     loss_object = tf.keras.losses.MeanSquaredError()
-    reg_loss_object = tf.keras.losses.MeanSquaredError()
-    reg_lambda = 1e-2
+    reg_lambda = 1e-4
     with tf.GradientTape(persistent=True) as tape:
         encoded_data = model.encode(data, training=True)
         same = model.decode(encoded_data, training=True)
         ae_loss = loss_object(data, same)
-        reg_loss = reg_lambda * (-1 * reg_loss_object(tf.zeros_like(encoded_data), encoded_data))
+        reg_loss = reg_lambda * reg_loss_func(encoded_data)
         loss = ae_loss + reg_loss
     gradients = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(gradients, model.trainable_variables))
