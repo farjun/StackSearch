@@ -50,7 +50,7 @@ class Post(XmlModel):
         return None
 
     def toWordsArray(self):
-        return self.body.split()
+        return self.title.split()
 
 class Answer(Post):
     def __init__(self, attributes):
