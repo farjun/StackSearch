@@ -1,16 +1,14 @@
 import tensorflow as tf
-import typing
 
-
-class BasicFCN(tf.keras.Model):
-    def __init__(self, input_dim, output_dim, *args, **kwargs):
+class YabaDabaCnnAutoencoder(tf.keras.Model):
+    def __init__(self, input_dim, latent_space_dim, *args, **kwargs):
         self.input_dim = input_dim
-        self.output_dim = output_dim
+        self.latent_space_dim = latent_space_dim
         super().__init__(*args, **kwargs)
         self.down_d1 = tf.keras.layers.Dense(128, activation=leaky_relu())
         self.down_d2 = tf.keras.layers.Dense(64, activation=leaky_relu())
         self.down_d3 = tf.keras.layers.Dense(32, activation=leaky_relu())
-        self.down_d4 = tf.keras.layers.Dense(output_dim, activation=tf.keras.activations.tanh)
+        self.down_d4 = tf.keras.layers.Dense(latent_space_dim, activation=tf.keras.activations.tanh)
         self.up_d3 = tf.keras.layers.Dense(32, activation=leaky_relu())
         self.up_d2 = tf.keras.layers.Dense(64, activation=leaky_relu())
         self.up_d1 = tf.keras.layers.Dense(128, activation=leaky_relu())
@@ -36,12 +34,7 @@ class BasicFCN(tf.keras.Model):
         return x
 
     def __str__(self):
-        return "BasicFCN_" + str(self.output_dim)
-
-
-def get_FCN_model(input_dim: int, output_dim: int) -> BasicFCN:
-    return BasicFCN(input_dim, output_dim)
-
+        return "YabaDabaCnnAutoencoder_" + str(self.latent_space_dim)
 
 def leaky_relu(*args, **kwargs):
     return tf.keras.layers.LeakyReLU(*args, **kwargs)
@@ -50,7 +43,7 @@ def leaky_relu(*args, **kwargs):
 if __name__ == '__main__':
     input_dim = 20
     output_dim = 10
-    model = get_FCN_model(input_dim, output_dim)
+    model = YabaDabaCnnAutoencoder(input_dim, output_dim)
     input = tf.keras.layers.Input(shape=input_dim)
     model(input)
     model.summary()

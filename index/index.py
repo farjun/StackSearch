@@ -33,7 +33,7 @@ class MinHashIndex(Index):
 
     def insert(self, postId, vec):
         minHashGenerator = self.getMinHashGenerator()
-        self.hasher.insert(postId, minHashGenerator.minhash(vec))
+        self.hasher.insert(postId, minHashGenerator.minhash(vec), check_duplication=False)
 
     def search(self, vec):
         minHashGenerator = self.getMinHashGenerator()

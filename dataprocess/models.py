@@ -26,6 +26,7 @@ class Post(XmlModel):
         self.answerCount = attributes.get('AnswerCount')
         self.commentCount = attributes.get('CommentCount')
         self.favoriteCount = attributes.get('FavoriteCount')
+        self.title = attributes.get('Title')
         self.answers = [Answer(attr) for attr in answersAttributees] if answersAttributees else None
 
     def __str__(self) -> str:

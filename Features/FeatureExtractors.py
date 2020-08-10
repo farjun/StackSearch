@@ -33,7 +33,7 @@ class HistogramFeatureExtractor(FeatureExtractor):
         return histogram
 
 
-class HistogramPostFeatureExtractor(FeatureExtractor):
+class NNWordEmbeddingFeatureExtractor(FeatureExtractor):
 
     def __init__(self):
         pass
