@@ -38,6 +38,6 @@ def runSearch(index):
 
 if __name__ == '__main__':
     # train_example(epochs=1000, restore_last=False, progress_per_step=100)
-    #train_partial(epochs=10, restore_last=True, progress_per_step=10)
+    train_partial(epochs=10, restore_last=True, progress_per_step=10)
     index = saveIndex()
     runSearch(index)
