@@ -42,6 +42,16 @@ class XmlParser(object):
         post.title = self.cleanString(post.title)
         return post
 
+    def getSentsGenerator(self):
+        postsIter = iter(self)
+
+        def gen():
+            for post in postsIter:
+                res = post.body.split()
+                yield res
+
+        return gen
+
     def getWordsGenerator(self, featureExtractor : FeatureExtractor = None):
         postsIter = iter(self)
 
