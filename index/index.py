@@ -1,19 +1,12 @@
 import os
-
-import numpy as np
 import pickle
-from datasketch import MinHashLSH, WeightedMinHashGenerator, MinHash, MinHashLSHForest
-import sklearn
+from datasketch import WeightedMinHashGenerator, MinHashLSHForest
 from hparams import HParams
 
 
 class Index(object):
     def __init__(self, indexPath):
         self.indexPath = indexPath
-        self.buffer = list()
-
-    def sort(self):
-        pass
 
 
 class MinHashIndex(Index):
