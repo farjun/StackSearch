@@ -1,4 +1,8 @@
-import re
+from nltk.corpus import stopwords
+
+from hparams import HParams
+
+englishStopWords = set(stopwords.words('english'))
 class XmlModel(object):
     pass
 
@@ -26,6 +30,7 @@ class Post(XmlModel):
         self.answerCount = attributes.get('AnswerCount')
         self.commentCount = attributes.get('CommentCount')
         self.favoriteCount = attributes.get('FavoriteCount')
+        self.title = attributes.get('Title')
         self.answers = [Answer(attr) for attr in answersAttributees] if answersAttributees else None
 
     def __str__(self) -> str:
@@ -48,8 +53,14 @@ class Post(XmlModel):
 
         return None
 
-    def toWordsArray(self):
-        return self.body.split()
+    def toWordsArray(self, limit = HParams.MAX_SENTENCE_DIM):
+        words = list()
+        for w in self.title.split():
+            if w not in englishStopWords:
+                if len(words) == limit:
+                    break
+                words.append(w)
+        return words
 
 class Answer(Post):
     def __init__(self, attributes):

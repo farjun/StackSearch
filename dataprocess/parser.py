@@ -31,10 +31,15 @@ class XmlParser(object):
         self.CommentsFilePath = CommentsFilePath
         self.postsFilePath = postsFilePath
 
+    @staticmethod
+    def cleanString(toClean):
+        toClean = MLStripper.strip_tags(toClean)
+        toClean = re.sub("[^a-zA-Z0-9 \n]+", "", toClean).lower()
+        return toClean
 
     def preproccessAttributes(self, post: Post):
-        post.body = MLStripper.strip_tags(post.body)
-        post.body = re.sub("[^a-zA-Z0-9 \n]+", "", post.body).lower()
+        post.body = self.cleanString(post.body)
+        post.title = self.cleanString(post.title)
         return post
 
     def getWordsGenerator(self, featureExtractor : FeatureExtractor = None):
@@ -47,6 +52,18 @@ class XmlParser(object):
                     res = featureExtractor.get_feature_batch(res)
                 for word in res:
                     yield word
+
+        return gen
+
+    def getTitleGenerator(self, featureExtractor : FeatureExtractor = None):
+        postsIter = iter(self)
+
+        def gen():
+            for post in postsIter:
+                res = post.title.split()
+                if featureExtractor:
+                    res = featureExtractor.get_feature_batch(res)
+                yield res
 
         return gen
 

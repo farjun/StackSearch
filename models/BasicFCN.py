@@ -5,6 +5,7 @@ import typing
 class BasicFCN(tf.keras.Model):
     def __init__(self, input_dim, output_dim, *args, **kwargs):
         self.input_dim = input_dim
+        self.output_dim = output_dim
         super().__init__(*args, **kwargs)
         reg_dict = {
             "kernel_regularizer": tf.keras.regularizers.l1_l2(),
@@ -44,6 +45,9 @@ class BasicFCN(tf.keras.Model):
         x = self.up_d1(x, training=training)
         x = self.out(x, training=training)
         return x
+
+    def __str__(self):
+        return "BasicFCN_" + str(self.output_dim)
 
 
 def get_FCN_model(input_dim: int, output_dim: int) -> BasicFCN:
