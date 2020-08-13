@@ -1,7 +1,8 @@
 from typing import List
-
+import numpy as np
 from dataprocess.models import Post
-
+from hparams import HParams
+import tensorflow as tf
 
 class FeatureExtractor:
     def get_feature_dim(self):
@@ -29,21 +30,23 @@ class HistogramFeatureExtractor(FeatureExtractor):
         histogram = [0] * self.get_feature_dim()
         for c in word:
             if ord(c) - ord('a') in range(len(histogram)):
-                histogram[ord(c) - ord('a')] += 1
+                histogram[ord(c) - ord('a')] += float(1.0)
         return histogram
 
 
-class NNWordEmbeddingFeatureExtractor(FeatureExtractor):
+class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
 
-    def __init__(self):
-        pass
-
-    def get_feature_dim(self):
-        return ord('z') - ord('a') + 1
-
-    def get_feature(self, post: Post):
+    def get_feature(self, word: str):
         histogram = [0] * self.get_feature_dim()
-        for c in post.body:
+        for c in word:
             if ord(c) - ord('a') in range(len(histogram)):
                 histogram[ord(c) - ord('a')] += 1
-        return histogram
+        return np.array(histogram, dtype=np.float32)
+
+    def get_feature_batch(self, words: List[str], maxSentenceDim = HParams.MAX_SENTENCE_DIM) -> np.ndarray:
+        result = np.zeros((maxSentenceDim, self.get_feature_dim()), dtype=np.float32)
+        for i,word in enumerate(words):
+            wordVec = self.get_feature(word)
+            result[i,:] = wordVec / np.max(wordVec)
+        result = result[..., tf.newaxis]
+        return result

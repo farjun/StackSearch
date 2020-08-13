@@ -1,6 +1,6 @@
 from random import random
 
-from Features.FeatureExtractors import FeatureExtractor, HistogramFeatureExtractor
+from Features.FeatureExtractors import FeatureExtractor, HistogramFeatureExtractor, NNWordEmbeddingFeatureExtractor
 import tensorflow as tf
 
 from dataprocess.parser import XmlParser
@@ -46,12 +46,22 @@ def get_partial_data_set(featureExtractor: FeatureExtractor):
         .prefetch(tf.data.experimental.AUTOTUNE)
     return ds
 
+def get_partial_data_set_titles(featureExtractor: FeatureExtractor):
+    xmlParser = XmlParser(HParams.filePath)
+    ds = tf.data.Dataset.from_generator(xmlParser.getTitleGenerator(featureExtractor=featureExtractor), (tf.int32))
+    ds = ds \
+        .cache() \
+        .batch(HParams.BATCH_SIZE) \
+        .shuffle(10000) \
+        .prefetch(tf.data.experimental.AUTOTUNE)
+    return ds
 
-def resolve_data_set(dataset_type: str, featureExtractor = HistogramFeatureExtractor()):
+def resolve_data_set(dataset_type: str, featureExtractor = NNWordEmbeddingFeatureExtractor()):
     default = "example"
     types = {
         default: get_data_set_example,
-        "partial": get_partial_data_set
+        "partial": get_partial_data_set,
+        "partial_titles": get_partial_data_set_titles
     }
     if dataset_type is None:
         dataset_type = default

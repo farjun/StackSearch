@@ -38,7 +38,7 @@ def getTrainStep(model, optimizer = tf.keras.optimizers.Adam()):
     return train_step
 
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
-                   save_result_per_epoch=5, restore_last=True, dataset_type: str = None):
+                   save_result_per_epoch=5, restore_last=True, dataset_type: str = 'partial_titles'):
     ds = resolve_data_set(dataset_type)
     nnHashEncoder = getNNHashEncoder(restore_last)
     train_step = getTrainStep(nnHashEncoder.model, nnHashEncoder.optimizer)

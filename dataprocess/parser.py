@@ -55,6 +55,18 @@ class XmlParser(object):
 
         return gen
 
+    def getTitleGenerator(self, featureExtractor : FeatureExtractor = None):
+        postsIter = iter(self)
+
+        def gen():
+            for post in postsIter:
+                res = post.title.split()
+                if featureExtractor:
+                    res = featureExtractor.get_feature_batch(res)
+                yield res
+
+        return gen
+
     def __iter__(self):
         postAnswers = list()
         for event, element in etree.iterparse(self.postsFilePath):
