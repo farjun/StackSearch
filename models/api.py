@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 # from tqdm.auto import tqdm # Uncomment for Colab-Notebook
-from Features.FeatureExtractors import HistogramFeatureExtractor
+from Features.FeatureExtractors import HistogramFeatureExtractor, NNWordEmbeddingFeatureExtractor
 from hparams import HParams
 from models.DabaCnnAutoencoder import DabaCnnAutoencoder
 
@@ -56,6 +56,6 @@ class NNHashEncoder(object):
         self.ckpt_manager.save()
 
 def getNNHashEncoder(restore_last=True):
-    featureExtractor = HistogramFeatureExtractor()
+    featureExtractor = NNWordEmbeddingFeatureExtractor()
     model = DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
     return NNHashEncoder(model, featureExtractor, restore_last = restore_last)

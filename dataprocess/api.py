@@ -48,7 +48,7 @@ def get_partial_data_set(featureExtractor: FeatureExtractor):
 
 def get_partial_data_set_titles(featureExtractor: FeatureExtractor):
     xmlParser = XmlParser(HParams.filePath)
-    ds = tf.data.Dataset.from_generator(xmlParser.getTitleGenerator(featureExtractor=featureExtractor), (tf.int32))
+    ds = tf.data.Dataset.from_generator(xmlParser.getTitleGenerator(featureExtractor=featureExtractor), (tf.float32))
     ds = ds \
         .cache() \
         .batch(HParams.BATCH_SIZE) \

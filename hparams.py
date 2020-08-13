@@ -6,7 +6,7 @@ class HParams:
     BATCH_SIZE = 4
     OUTPUT_DIM = 64
     CKPT_MAX_TO_KEEP = 2
-    MAX_SENTENCE_DIM = 30
+    MAX_SENTENCE_DIM = 32
 
 
 
