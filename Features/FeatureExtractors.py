@@ -1,8 +1,14 @@
 from typing import List
 import numpy as np
 from dataprocess.models import Post
+from gensim.models import Word2Vec
+from nltk.corpus import brown
+import gensim
+import os
+
 from hparams import HParams
 import tensorflow as tf
+
 
 class FeatureExtractor:
     def get_feature_dim(self):
@@ -50,3 +56,31 @@ class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
             result[i,:] = wordVec / np.max(wordVec)
         result = result[..., tf.newaxis]
         return result
+
+
+class AdvFeatureExtractor(FeatureExtractor):
+
+    def __init__(self, dim=26):
+        self.dim = dim
+        self.model = None
+        self._path = './checkpoints/word2vec/brown_1'
+        if os.path.exists(self._path):
+            self.model = gensim.models.Word2Vec.load(self._path)
+        else:
+            self.train()
+
+    def get_feature_dim(self):
+        return self.dim
+
+    def train(self):
+        #TODO train on our data as well
+        self.model = gensim.models.Word2Vec(brown.sents(), size=self.dim)
+        self.model.save(self._path)
+
+    def get_feature(self, word: str):
+        missing_word_case = np.array([0.0001] * self.dim)
+        if word in self.model.wv:
+            return self.model.wv[word]
+        return missing_word_case
+
+
