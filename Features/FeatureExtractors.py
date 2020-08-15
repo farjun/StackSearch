@@ -30,7 +30,7 @@ class HistogramFeatureExtractor(FeatureExtractor):
         pass
 
     def get_feature_dim(self):
-        return ord('z') - ord('a') + 1
+        return ord('z') - ord('a') + 7
 
     def get_feature(self, word: str):
         histogram = [0] * self.get_feature_dim()
@@ -53,7 +53,9 @@ class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
         result = np.zeros((maxSentenceDim, self.get_feature_dim()), dtype=np.float32)
         for i,word in enumerate(words):
             wordVec = self.get_feature(word)
-            result[i,:] = wordVec / np.max(wordVec)
+            if np.max(wordVec) != 0:
+                wordVec = wordVec / np.max(wordVec)
+            result[i,:] = wordVec
         result = result[..., tf.newaxis]
         return result
 

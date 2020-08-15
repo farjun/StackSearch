@@ -19,14 +19,12 @@ def train_example(*args, **kwargs):
 def saveIndex():
     xmlParser = XmlParser(HParams.filePath)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    # index = MinHashIndex(indexPath, overwrite=True)
     index = MinHashIndex(indexPath, overwrite=True)
     for post in xmlParser:
         wordsArr = post.toWordsArray()
         encodedVecs = encode_batch(wordsArr)
         postSimHash = np.around(np.average(encodedVecs, axis=0))
         index.insert(post.id, postSimHash)
-    index.sort()
     index.save()
     return index
 
