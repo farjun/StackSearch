@@ -7,14 +7,15 @@ import tensorflow as tf
 from Features.FeatureExtractors import HistogramFeatureExtractor, NNWordEmbeddingFeatureExtractor
 from hparams import HParams
 from models.DabaCnnAutoencoder import DabaCnnAutoencoder
+from models.YabaDabaDiscriminator import DabaDiscriminator
 
 
 class NNHashEncoder(object):
-    def __init__(self, model, featureExtractor, optimizer = tf.optimizers.Adam(), restore_last=False):
+    def __init__(self, model, discriminator, featureExtractor, optimizer = tf.optimizers.Adam(), restore_last=False):
         self.featureExtractor = featureExtractor
         self.optimizer = optimizer
         self.model = model
-
+        self.discriminator = discriminator
         self.ckpt_manager = self.load(restore_last)
 
     def encode(self, word: str):
@@ -59,4 +60,5 @@ class NNHashEncoder(object):
 def getNNHashEncoder(restore_last=True):
     featureExtractor = NNWordEmbeddingFeatureExtractor()
     model = DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
-    return NNHashEncoder(model, featureExtractor, restore_last = restore_last)
+    discriminator = DabaDiscriminator()
+    return NNHashEncoder(model, discriminator, featureExtractor, restore_last = restore_last)

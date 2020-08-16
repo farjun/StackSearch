@@ -1,6 +1,6 @@
 from random import random
 
-from Features.FeatureExtractors import FeatureExtractor, HistogramFeatureExtractor, NNWordEmbeddingFeatureExtractor
+from Features.FeatureExtractors import FeatureExtractor, NNWordEmbeddingFeatureExtractor
 import tensorflow as tf
 
 from dataprocess.parser import XmlParser
