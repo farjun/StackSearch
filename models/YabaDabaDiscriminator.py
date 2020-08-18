@@ -12,6 +12,6 @@ class DabaDiscriminator(tf.keras.Model):
         self.densePredict = tf.keras.layers.Dense(1)
 
     def call(self, x, **kwargs):
-        x = self.down_d2(x)
-        x = self.down_d3(x)
-        return self.densePredict(x)
+        x = self.down_d2(x, **kwargs)
+        x = self.down_d3(x, **kwargs)
+        return self.densePredict(x, **kwargs)

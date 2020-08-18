@@ -2,6 +2,7 @@ from dataprocess.parser import XmlParser
 from hparams import HParams
 from index.hash_index import Index
 from index.index import MinHashIndex
+from models.api import getNNHashEncoder
 from train_and_test import encode, encode_batch
 import numpy as np
 import os
@@ -28,6 +29,18 @@ def saveIndex():
     index.save()
     return index
 
+def saveYabaDabaIndex():
+    xmlParser = XmlParser(HParams.filePath)
+    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    index = MinHashIndex(indexPath, overwrite=True)
+    hasher = getNNHashEncoder()
+    for post in xmlParser:
+        wordsArr = post.toWordsArray()
+        encodedVecs = hasher.encode_batch(wordsArr)
+        index.insert(post.id, encodedVecs)
+    index.save()
+    return index
+
 def runSearch(index):
     wordsArr = ["Python", "numpy"]
     encodedVecs = encode_batch(wordsArr)
@@ -36,6 +49,6 @@ def runSearch(index):
 
 if __name__ == '__main__':
     # train_example(epochs=1000, restore_last=False, progress_per_step=100)
-    train_partial(epochs=10, restore_last=False, progress_per_step=10)
-    index = saveIndex()
+    train_partial(epochs=1000, restore_last=False, progress_per_step=10)
+    index = saveYabaDabaIndex()
     runSearch(index)
