@@ -23,6 +23,9 @@ class MyTestCase(unittest.TestCase):
 
         self.index.index()
         self.assertEqual(self.index.search(padVec([1, 1, 1, 0, 1, 0, 0, 1, 0, 0]), top_k=1), [1])
+        self.assertEqual(self.index.search(padVec([1, 1, 1, 0, 1, 0, 0, 1, 0, 1]), top_k=1), [1])
+        self.assertEqual(self.index.search(padVec([1, 1, 1, 0, 1, 1, 0, 1, 0, 1]), top_k=1), [1])
+        self.assertEqual(self.index.search(padVec([1, 1, 1, 0, 1, 1, 0, 1, 0, 1]), top_k=2), [1,2])
         self.assertEqual(self.index.search(padVec([1, 0, 1, 0, 1, 1, 0, 1, 0, 1]), top_k=1), [3])
         self.assertEqual(self.index.search(padVec([1, 0, 1, 0, 1, 0, 0, 1, 0, 0]), top_k=1), [2])
         self.assertEqual(self.index.search(padVec([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]), top_k=4), [1, 2, 3, 4])

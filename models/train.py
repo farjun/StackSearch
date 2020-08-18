@@ -35,23 +35,24 @@ def discriminator_research_loss(real_output, fake_output):
     return total_loss
 
 
-def generator_research_loss(fake_output):
+def generator_research_loss(fake_output, data, same):
+    #todo add the reconstruction loss to the encoder
     return cross_entropy(tf.ones_like(fake_output), fake_output)
 
 
 def getTrainStep(model, discriminator):
     generator_optimizer = tf.keras.optimizers.Adam(1e-4)
     discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
+    generator_rec_train_loss = tf.keras.metrics.Mean(name='autoencoder_reconstruction_loss')
 
+    #report stuff
     generator_train_loss = tf.keras.metrics.Mean(name='gen-train_loss')
     discriminator_train_loss = tf.keras.metrics.Mean(name='disc-train_loss')
-
     generator_train_accuracy = tf.keras.metrics.BinaryAccuracy(name='gen-train_accuracy')
     discriminator_train_accuracy = tf.keras.metrics.BinaryAccuracy(name='disc-train_accuracy')
 
     @tf.function
     def train_step(data, metric):
-        loss_object = tf.keras.losses.MeanSquaredError()
         with tf.GradientTape(persistent=True) as gen_tape, tf.GradientTape() as disc_tape:
             encoded_data = model.encode(data, training=True)
             same = model.decode(encoded_data, training=True)
@@ -61,10 +62,9 @@ def getTrainStep(model, discriminator):
             fake_vec_output = discriminator(encoded_data, training=True)
             real_vec_output = discriminator(randomVec, training=True)
 
-            generator_loss = generator_research_loss(fake_vec_output)
+            generator_loss = generator_research_loss(fake_vec_output, data, same)
             discriminator_loss = discriminator_research_loss(real_vec_output, fake_vec_output)
 
-            ae_loss = loss_object(data, same)
 
         autoencoder_gradients = gen_tape.gradient(generator_loss, model.trainable_variables)
         discriminator_gradients = disc_tape.gradient(discriminator_loss, discriminator.trainable_variables)
