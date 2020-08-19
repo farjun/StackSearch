@@ -41,6 +41,8 @@ class MinHashIndex(Index):
     def index(self):
         self.hasher.index()
 
+
+
     def save(self):
         data = pickle.dumps(self.hasher)
         with open(self.indexPickleFilePath, 'wb') as f:

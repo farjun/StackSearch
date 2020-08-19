@@ -78,8 +78,6 @@ def getTrainStep(model, discriminator):
         generator_train_accuracy.update_state(tf.zeros_like(real_vec_output), real_vec_output)
         discriminator_train_accuracy.update_state(tf.ones_like(real_vec_output), real_vec_output)
 
-        metric(ae_loss)
-
     return train_step, [generator_train_loss, discriminator_train_loss, generator_train_accuracy, discriminator_train_accuracy]
 
 

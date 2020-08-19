@@ -6,6 +6,7 @@ from models.api import getNNHashEncoder
 from train_and_test import encode, encode_batch
 import numpy as np
 import os
+from dataprocess.cleaners import cleanQuery
 
 def train_partial(*args, **kwargs):
     import models.train
@@ -38,17 +39,18 @@ def saveYabaDabaIndex():
         wordsArr = post.toWordsArray()
         encodedVecs = hasher.encode_batch(wordsArr)
         index.insert(post.id, encodedVecs)
+    index.index()
     index.save()
     return index
 
-def runSearch(index):
-    wordsArr = ["Python", "numpy"]
-    encodedVecs = encode_batch(wordsArr)
-    simHash = np.around(np.average(encodedVecs, axis=0))
-    print(index.search(simHash))
+def runSearch(index, searchQuery = None):
+    wordsArr = cleanQuery(searchQuery)
+    hasher = getNNHashEncoder()
+    encodedVecs = hasher.encode_batch(wordsArr)
+    print(index.search(encodedVecs, top_k=1))
 
 if __name__ == '__main__':
     # train_example(epochs=1000, restore_last=False, progress_per_step=100)
-    train_partial(epochs=1000, restore_last=False, progress_per_step=10)
+    train_partial(epochs=1, restore_last=True, progress_per_step=10)
     index = saveYabaDabaIndex()
-    runSearch(index)
+    runSearch(index, "What are the advantages of using SVN over CVS")

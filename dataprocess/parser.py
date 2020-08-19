@@ -1,45 +1,16 @@
 import xml.etree.cElementTree as etree
-import re
 from Features.FeatureExtractors import FeatureExtractor
 from dataprocess.models import Post
-from io import StringIO
-from html.parser import HTMLParser
-
-class MLStripper(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.reset()
-        self.strict = False
-        self.convert_charrefs = True
-        self.text = StringIO()
-
-    def handle_data(self, d):
-        self.text.write(d)
-
-    def get_data(self):
-        return self.text.getvalue()
-
-    @staticmethod
-    def strip_tags(html):
-        s = MLStripper()
-        s.feed(html)
-        return s.get_data()
-
+from dataprocess.cleaners import cleanString
 
 class XmlParser(object):
     def __init__(self, postsFilePath, CommentsFilePath = None):
         self.CommentsFilePath = CommentsFilePath
         self.postsFilePath = postsFilePath
 
-    @staticmethod
-    def cleanString(toClean):
-        toClean = MLStripper.strip_tags(toClean)
-        toClean = re.sub("[^a-zA-Z0-9 \n]+", "", toClean).lower()
-        return toClean
-
     def preproccessAttributes(self, post: Post):
-        post.body = self.cleanString(post.body)
-        post.title = self.cleanString(post.title)
+        post.body = cleanString(post.body)
+        post.title = cleanString(post.title)
         return post
 
     def getSentsGenerator(self):

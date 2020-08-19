@@ -1,8 +1,6 @@
-from nltk.corpus import stopwords
 
 from hparams import HParams
-
-englishStopWords = set(stopwords.words('english'))
+from dataprocess.cleaners import englishStopWords
 class XmlModel(object):
     pass
 
