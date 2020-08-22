@@ -7,6 +7,7 @@ from train_and_test import encode, encode_batch
 import numpy as np
 import os
 from dataprocess.cleaners import cleanQuery
+import tensorflow as tf
 
 def train_partial(*args, **kwargs):
     import models.train
@@ -47,10 +48,11 @@ def runSearch(index, searchQuery = None):
     wordsArr = cleanQuery(searchQuery)
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
-    print(index.search(encodedVecs, top_k=1))
+    print(index.search(encodedVecs, top_k=10))
 
 if __name__ == '__main__':
     # train_example(epochs=1000, restore_last=False, progress_per_step=100)
-    train_partial(epochs=1, restore_last=True, progress_per_step=10)
+    train_partial(epochs=10, restore_last=False, progress_per_step=10)
     index = saveYabaDabaIndex()
     runSearch(index, "What are the advantages of using SVN over CVS")
+    runSearch(index, "ASP.Net Custom Client-Side Validation")
