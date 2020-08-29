@@ -6,7 +6,7 @@ from tqdm import tqdm
 from Features.FeatureExtractors import NNWordEmbeddingFeatureExtractor
 from dataprocess.api import resolve_data_set
 import tensorflow as tf
-
+import tensorflow_probability as tfp
 from hparams import HParams
 from models.api import getNNHashEncoder
 
@@ -42,7 +42,8 @@ def getGeneratorLoss(lossObject):
 
     def generator_research_loss(fake_output, data, genOutput):
         reconstructionLoss = lossObject(data, genOutput)
-        return cross_entropy(tf.ones_like(fake_output), fake_output) + reconstructionLoss
+        crossEntropyLoss = cross_entropy(tf.ones_like(fake_output), fake_output)
+        return crossEntropyLoss + reconstructionLoss
 
     return generator_research_loss
 
@@ -63,15 +64,15 @@ def getTrainStep(model, discriminator, numOfWOrdsTODrop = 2):
     generator_train_accuracy = tf.keras.metrics.BinaryAccuracy(name='gen-train_accuracy')
     discriminator_train_accuracy = tf.keras.metrics.BinaryAccuracy(name='disc-train_accuracy')
 
+    #prob distributions
+    randomVecDistribution = tfp.distributions.Bernoulli(probs=tf.constant(0.5, shape = (HParams.BATCH_SIZE, HParams.OUTPUT_DIM)))
     @tf.function
     def train_step(data: tf.Tensor, noisedData: tf.Tensor):
         with tf.GradientTape(persistent=True) as gen_tape, tf.GradientTape() as disc_tape:
 
             encoded_data = model.encode(noisedData, training=True)
             genOutput = model.decode(encoded_data, training=True)
-
-            randomVec = np.random.choice([0, 1], size=(HParams.BATCH_SIZE, HParams.OUTPUT_DIM))
-
+            randomVec = randomVecDistribution.sample()
             fake_vec_output = discriminator(encoded_data, training=True)
             real_vec_output = discriminator(randomVec, training=True)
 

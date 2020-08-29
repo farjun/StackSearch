@@ -1,7 +1,7 @@
 from os import path
 
 class HParams:
-    DATASET_SIZE = 20000 # takes first DATASET_SIZE posts out of the full dataset
+    DATASET_SIZE = 8000 # takes first DATASET_SIZE posts out of the full dataset
     filePath = path.join("data", "Posts.xml")
     BATCH_SIZE = 4
     OUTPUT_DIM = 64

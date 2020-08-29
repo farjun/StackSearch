@@ -41,8 +41,8 @@ class HistogramFeatureExtractor(FeatureExtractor):
 
 
 class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
-    def __init__(self, numOfWordsToDrop = 0):
-        super()
+    def __init__(self, numOfWordsToDrop=0):
+        super().__init__()
         self.numOfWordsToDrop = numOfWordsToDrop
 
     def get_feature(self, word: str):
@@ -58,6 +58,7 @@ class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
             wordVec = self.get_feature(word)
             if np.max(wordVec) != 0:
                 wordVec = wordVec / np.max(wordVec)
+                wordVec = np.around(wordVec)
             result[i,:] = wordVec
 
         if self.numOfWordsToDrop > 0:

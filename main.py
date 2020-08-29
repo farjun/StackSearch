@@ -31,9 +31,9 @@ def saveIndex():
     index.save()
     return index
 
-def saveYabaDabaIndex():
+def saveYabaDabaIndex(saveIndexPath = None):
     xmlParser = XmlParser(HParams.filePath)
-    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    indexPath = saveIndexPath or os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=True)
     hasher = getNNHashEncoder()
     for post in xmlParser:
@@ -48,11 +48,16 @@ def runSearch(index, searchQuery = None):
     wordsArr = cleanQuery(searchQuery)
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
-    print(index.search(encodedVecs, top_k=10))
+    return index.search(encodedVecs, top_k=10)
 
 if __name__ == '__main__':
-    # train_example(epochs=1000, restore_last=False, progress_per_step=100)
     train_partial(epochs=10, restore_last=False, progress_per_step=10)
-    index = saveYabaDabaIndex()
-    runSearch(index, "What are the advantages of using SVN over CVS")
-    runSearch(index, "ASP.Net Custom Client-Side Validation")
+    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    index = MinHashIndex(indexPath)
+    if index.size() != HParams.DATASET_SIZE:
+        print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
+                                                                                              index.size()))
+        index = saveYabaDabaIndex()
+    print(runSearch(index, "What are the advantages of using SVN over CVS"))
+    print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
+    print(index.size())
