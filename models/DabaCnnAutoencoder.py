@@ -1,9 +1,9 @@
 import tensorflow as tf
-from tensorflow.python.keras.layers import Conv2DTranspose, BatchNormalization, Reshape
-from tensorflow.keras import Model, Input
-from tensorflow.keras.layers import Conv2D, Conv2DTranspose, Dense, Flatten, Reshape, BatchNormalization, LeakyReLU
-from hparams import HParams
 import tensorflow_addons as tfa
+from tensorflow.keras.layers import Conv2DTranspose, Dense, Reshape, BatchNormalization
+
+from hparams import HParams
+
 
 class DabaCnnAutoencoder(tf.keras.Model):
     def __init__(self, featureDim, latent_space_dim, useNormalization = False, *args, **kwargs):

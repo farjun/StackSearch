@@ -50,14 +50,17 @@ def runSearch(index, searchQuery = None):
     encodedVecs = hasher.encode_batch(wordsArr)
     return index.search(encodedVecs, top_k=10)
 
-if __name__ == '__main__':
+def main():
     train_partial(epochs=10, restore_last=False, progress_per_step=10)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath)
     if index.size() != HParams.DATASET_SIZE:
         print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
-                                                                                              index.size()))
+                                                                                       index.size()))
         index = saveYabaDabaIndex()
     print(runSearch(index, "What are the advantages of using SVN over CVS"))
     print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
     print(index.size())
+
+if __name__ == '__main__':
+    main()
