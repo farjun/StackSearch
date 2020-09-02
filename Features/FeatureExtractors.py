@@ -1,7 +1,6 @@
 from typing import List
 import numpy as np
 from dataprocess.models import Post
-from gensim.models import Word2Vec
 from nltk.corpus import brown
 import gensim
 import os
@@ -22,6 +21,7 @@ class FeatureExtractor:
         for word in words:
             result.append(self.get_feature(word))
         return result
+
 
 
 class HistogramFeatureExtractor(FeatureExtractor):
@@ -62,22 +62,17 @@ class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
 
 class AdvFeatureExtractor(FeatureExtractor):
 
-    def __init__(self, dim=26):
+    def __init__(self, dim=HParams.OUTPUT_DIM):
         self.dim = dim
         self.model = None
-        self._path = './checkpoints/word2vec/brown_1'
+        self._path = HParams.word2vecFilePath
         if os.path.exists(self._path):
             self.model = gensim.models.Word2Vec.load(self._path)
         else:
-            self.train()
+            raise Exception('call train_embedder from models/train.py')
 
     def get_feature_dim(self):
         return self.dim
-
-    def train(self):
-        #TODO train on our data as well
-        self.model = gensim.models.Word2Vec(brown.sents(), size=self.dim)
-        self.model.save(self._path)
 
     def get_feature(self, word: str):
         missing_word_case = np.array([0.0001] * self.dim)

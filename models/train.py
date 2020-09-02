@@ -104,3 +104,14 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
             toReport.reset_states()
 
     nnHashEncoder.save()
+
+
+def train_embedder():
+    from dataprocess.parser import XmlParser
+    from gensim.test.utils import common_texts
+    from gensim.models import Word2Vec
+    xmlParser = XmlParser(HParams.filePath)  #TODO SET TO FULL DATA
+    model = Word2Vec(common_texts, size=HParams.OUTPUT_DIM, window=10, min_count=1, workers=4)
+    model.build_vocab((xmlParser.getSentsGenerator())(), update=True)
+    model.train((xmlParser.getSentsGenerator())(), total_examples=model.corpus_count, epochs=model.iter)
+    model.save(HParams.word2vecFilePath)
