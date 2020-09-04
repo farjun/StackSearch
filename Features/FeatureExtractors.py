@@ -82,6 +82,8 @@ class W2VFeatureExtractor(FeatureExtractor):
         return missing_word_case
 
     def get_feature_batch(self, words: List[str], maxSentenceDim=HParams.MAX_SENTENCE_DIM) -> np.ndarray:
+        if len(words) == 0:
+            raise Exception("0 length sentence.")
         sum_vec = np.zeros(self.dim, dtype=np.float32)
         for word in words:
             word_vec = self.get_feature(word)
@@ -111,6 +113,8 @@ class D2VFeatureExtractor(FeatureExtractor):
         return self.get_feature_batch([word])
 
     def get_feature_batch(self, words: List[str], maxSentenceDim=HParams.MAX_SENTENCE_DIM) -> np.ndarray:
+        if len(words) == 0:
+            raise Exception("0 length sentence.")
         result = self.model.infer_vector(words)
         result.resize((maxSentenceDim, self.get_feature_dim(), 1))
         return result

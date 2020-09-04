@@ -30,6 +30,7 @@ def saveIndex():
     index.save()
     return index
 
+
 def saveYabaDabaIndex():
     xmlParser = XmlParser(HParams.filePath)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
@@ -43,14 +44,30 @@ def saveYabaDabaIndex():
     index.save()
     return index
 
-def runSearch(index, searchQuery = None):
+
+def runSearch(index, searchQuery=None):
+    print('='*10)
+    print(searchQuery)
+    print('='*10)
     wordsArr = cleanQuery(searchQuery)
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
+    print(encodedVecs)  # TODO check why encodedVecs are the same for diff sentences
+    print(index.search(encodedVecs, top_k=3))
+    print(index.search(encodedVecs, top_k=2))
     print(index.search(encodedVecs, top_k=1))
+
 
 if __name__ == '__main__':
     # train_example(epochs=1000, restore_last=False, progress_per_step=100)
-    train_partial(epochs=1, restore_last=True, progress_per_step=10)
+
+    ## Train
+    train_partial(epochs=1000, restore_last=False, progress_per_step=100)
     index = saveYabaDabaIndex()
+
+    ## Load
+    # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    # index = MinHashIndex(indexPath, overwrite=False)
+
     runSearch(index, "What are the advantages of using SVN over CVS")
+    runSearch(index, "SVN over CVS")
