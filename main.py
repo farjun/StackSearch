@@ -62,12 +62,12 @@ if __name__ == '__main__':
     # train_example(epochs=1000, restore_last=False, progress_per_step=100)
 
     ## Train
-    train_partial(epochs=1000, restore_last=False, progress_per_step=100)
-    index = saveYabaDabaIndex()
+    # train_partial(epochs=1000, restore_last=False, progress_per_step=100)
+    # index = saveYabaDabaIndex()
 
     ## Load
-    # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    # index = MinHashIndex(indexPath, overwrite=False)
+    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    index = MinHashIndex(indexPath, overwrite=False)
 
     runSearch(index, "What are the advantages of using SVN over CVS")
     runSearch(index, "SVN over CVS")
