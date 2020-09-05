@@ -51,7 +51,7 @@ def runSearch(index, searchQuery = None):
     return index.search(encodedVecs, top_k=10)
 
 def main():
-    train_partial(epochs=10, restore_last=False, progress_per_step=10)
+    train_partial(epochs=10, restore_last=True, progress_per_step=10)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath)
     if index.size() != HParams.DATASET_SIZE:

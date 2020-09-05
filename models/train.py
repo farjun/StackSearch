@@ -43,7 +43,7 @@ def getGeneratorLoss(lossObject):
     def generator_research_loss(fake_output, data, genOutput):
         reconstructionLoss = lossObject(data, genOutput)
         crossEntropyLoss = cross_entropy(tf.ones_like(fake_output), fake_output)
-        return crossEntropyLoss + reconstructionLoss
+        return reconstructionLoss + crossEntropyLoss
 
     return generator_research_loss
 
@@ -54,7 +54,7 @@ def getTrainStep(model, discriminator, numOfWOrdsTODrop = 2):
     discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
     #derivetive by
-    reconstructionLoss = tf.keras.metrics.Mean(name='autoencoder_reconstruction_loss')
+    reconstructionLoss = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
     genTrainLoss = getGeneratorLoss(reconstructionLoss)
     discTrainLoss = getDiscriminatorLoss()
 
@@ -63,6 +63,8 @@ def getTrainStep(model, discriminator, numOfWOrdsTODrop = 2):
     discriminator_train_loss = tf.keras.metrics.Mean(name='disc-train_loss')
     generator_train_accuracy = tf.keras.metrics.BinaryAccuracy(name='gen-train_accuracy')
     discriminator_train_accuracy = tf.keras.metrics.BinaryAccuracy(name='disc-train_accuracy')
+    reconstructionAccuracy = tf.keras.metrics.Mean(name='autoencoder_reconstruction_loss')
+
 
     #prob distributions
     randomVecDistribution = tfp.distributions.Bernoulli(probs=tf.constant(0.5, shape = (HParams.BATCH_SIZE, HParams.OUTPUT_DIM)))
@@ -72,6 +74,7 @@ def getTrainStep(model, discriminator, numOfWOrdsTODrop = 2):
 
             encoded_data = model.encode(noisedData, training=True)
             genOutput = model.decode(encoded_data, training=True)
+            tf.print(encoded_data)
             randomVec = randomVecDistribution.sample()
             fake_vec_output = discriminator(encoded_data, training=True)
             real_vec_output = discriminator(randomVec, training=True)
@@ -91,12 +94,13 @@ def getTrainStep(model, discriminator, numOfWOrdsTODrop = 2):
 
         generator_train_accuracy.update_state(tf.zeros_like(real_vec_output), real_vec_output)
         discriminator_train_accuracy.update_state(tf.ones_like(real_vec_output), real_vec_output)
+        reconstructionAccuracy.update_state(genOutput, data)
 
-    return train_step, [generator_train_loss, discriminator_train_loss, generator_train_accuracy, discriminator_train_accuracy, reconstructionLoss]
+    return train_step, [generator_train_loss, discriminator_train_loss, generator_train_accuracy, discriminator_train_accuracy, reconstructionAccuracy]
 
 
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
-                   save_result_per_epoch=5, restore_last=True, dataset_type: str = 'partial_titles'):
+                   save_result_per_epoch=5, restore_last=False, dataset_type: str = 'partial_titles'):
     ds = resolve_data_set(dataset_type, featureExtractor=NNWordEmbeddingFeatureExtractor())
     noisedDs = resolve_data_set(dataset_type, featureExtractor=NNWordEmbeddingFeatureExtractor(numOfWordsToDrop=2))
     nnHashEncoder = getNNHashEncoder(restore_last)
@@ -108,7 +112,7 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
         if epoch % save_result_per_epoch == 0:
             nnHashEncoder.save()
 
-        for data, noisedData in zip(ds, noisedDs):
+        for data, noisedData in tqdm(zip(ds, noisedDs), desc="epoc run", total = HParams.DATASET_SIZE):
             train_step(data, noisedData)
             if step % progress_per_step == 0:
                 writer.reprortProgressMany(reportStuff, step)
