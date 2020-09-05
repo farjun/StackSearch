@@ -41,6 +41,9 @@ class HistogramFeatureExtractor(FeatureExtractor):
 
 
 class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
+    def __init__(self, numOfWordsToDrop=0):
+        super().__init__()
+        self.numOfWordsToDrop = numOfWordsToDrop
 
     def get_feature(self, word: str):
         histogram = [0] * self.get_feature_dim()
@@ -49,16 +52,25 @@ class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
                 histogram[ord(c) - ord('a')] += 1
         return np.array(histogram, dtype=np.float32)
 
-    def get_feature_batch(self, words: List[str], maxSentenceDim = HParams.MAX_SENTENCE_DIM) -> np.ndarray:
-        result = np.zeros((maxSentenceDim, self.get_feature_dim()), dtype=np.float32)
+    def get_feature_batch(self, words: List[str]) -> np.ndarray:
+        result = np.zeros((HParams.MAX_SENTENCE_DIM, self.get_feature_dim()), dtype=np.float32)
         for i,word in enumerate(words):
             wordVec = self.get_feature(word)
             if np.max(wordVec) != 0:
                 wordVec = wordVec / np.max(wordVec)
+                wordVec = np.around(wordVec)
             result[i,:] = wordVec
+
+        if self.numOfWordsToDrop > 0:
+            result[np.random.choice(result.shape[0], size=self.numOfWordsToDrop)] = 0
+
         result = result[..., tf.newaxis]
         return result
 
+    def get_noised_feature_batch(self, words:List[str], numOfWordsToDrop = 2):
+        features = self.get_feature_batch(words)
+        features[np.random.choice(features.shape[0], size=numOfWordsToDrop)] = 0
+        return features
 
 class W2VFeatureExtractor(FeatureExtractor):
 

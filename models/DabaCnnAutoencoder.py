@@ -1,8 +1,7 @@
 import tensorflow as tf
-from tensorflow.python import Reshape
-from tensorflow.python.keras.layers import Conv2DTranspose, BatchNormalization
-from tensorflow.keras import Model, Input
-from tensorflow.keras.layers import Conv2D, Conv2DTranspose, Dense, Flatten, Reshape, BatchNormalization, LeakyReLU
+import tensorflow_addons as tfa
+from tensorflow.keras.layers import Conv2DTranspose, Dense, Reshape, BatchNormalization
+
 from hparams import HParams
 
 
@@ -25,7 +24,7 @@ class DabaCnnAutoencoder(tf.keras.Model):
         #encode
         self.down_c1 = tf.keras.layers.Conv2D(300, kernel_size=(5, latent_space_dim), strides=2, padding='same', activation='relu')
         self.down_c2 = tf.keras.layers.Conv2D(600, kernel_size=(5, 1), strides=2)
-        #todo self.down_m3 = should be tensorflow addon maxout layer (some addon layer we will try to add later)
+        self.down_m3 = tfa.layers.Maxout(300)
         self.down_d1 = tf.keras.layers.Dense(latent_space_dim, activation=tf.keras.activations.tanh)
 
         #decode
@@ -42,6 +41,7 @@ class DabaCnnAutoencoder(tf.keras.Model):
         x = inputs
         x = self.down_c1(x, training = training)
         x = self.down_c2(x, training = training)
+        x = self.down_m3(x, training= training)
         x = self.flatten(x)
         x = self.down_d1(x, training = training)
         return x

@@ -24,6 +24,7 @@ class MLStripper(HTMLParser):
         s.feed(html)
         return s.get_data()
 
+
 def cleanString(toClean):
     toClean = MLStripper.strip_tags(toClean)
     toClean = re.sub("[^a-zA-Z0-9 \n]+", "", toClean).lower()

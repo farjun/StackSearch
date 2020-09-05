@@ -48,7 +48,7 @@ def get_partial_data_set(featureExtractor: FeatureExtractor):
 
 def get_partial_data_set_titles(featureExtractor: FeatureExtractor):
     xmlParser = XmlParser(HParams.filePath)
-    ds = tf.data.Dataset.from_generator(xmlParser.getTitleGenerator(featureExtractor=featureExtractor), (tf.float32))
+    ds = tf.data.Dataset.from_generator(xmlParser.getTitleGenerator(featureExtractor=featureExtractor), (tf.float32), output_shapes=(HParams.MAX_SENTENCE_DIM, featureExtractor.get_feature_dim(),1))
     ds = ds \
         .cache() \
         .batch(HParams.BATCH_SIZE) \
@@ -57,8 +57,8 @@ def get_partial_data_set_titles(featureExtractor: FeatureExtractor):
     return ds
 
 
+
 def resolve_data_set(dataset_type: str, featureExtractor=D2VFeatureExtractor()):
-# def resolve_data_set(dataset_type: str, featureExtractor = NNWordEmbeddingFeatureExtractor()):
     default = "example"
     types = {
         default: get_data_set_example,

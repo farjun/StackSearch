@@ -7,6 +7,7 @@ from train_and_test import encode, encode_batch
 import numpy as np
 import os
 from dataprocess.cleaners import cleanQuery
+import tensorflow as tf
 
 def train_partial(*args, **kwargs):
     import models.train
@@ -33,7 +34,7 @@ def saveIndex():
 
 def saveYabaDabaIndex():
     xmlParser = XmlParser(HParams.filePath)
-    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    indexPath = saveIndexPath or os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=True)
     hasher = getNNHashEncoder()
     for post in xmlParser:
@@ -52,6 +53,19 @@ def runSearch(index, searchQuery=None):
     wordsArr = cleanQuery(searchQuery)
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
+    return index.search(encodedVecs, top_k=10)
+
+def main():
+    train_partial(epochs=10, restore_last=True, progress_per_step=10)
+    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    index = MinHashIndex(indexPath)
+    if index.size() != HParams.DATASET_SIZE:
+        print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
+                                                                                       index.size()))
+        index = saveYabaDabaIndex()
+    print(runSearch(index, "What are the advantages of using SVN over CVS"))
+    print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
+    print(index.size())
     print(encodedVecs)  # TODO check why encodedVecs are the same for diff sentences
     print(index.search(encodedVecs, top_k=3))
     print(index.search(encodedVecs, top_k=2))
@@ -59,8 +73,7 @@ def runSearch(index, searchQuery=None):
 
 
 if __name__ == '__main__':
-    # train_example(epochs=1000, restore_last=False, progress_per_step=100)
-
+    main()
     ## Train
     # train_partial(epochs=1000, restore_last=False, progress_per_step=100)
     # index = saveYabaDabaIndex()

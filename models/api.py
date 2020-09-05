@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 # from tqdm.auto import tqdm # Uncomment for Colab-Notebook
+from dataprocess.cleaners import cleanQuery
 from Features.FeatureExtractors import HistogramFeatureExtractor, NNWordEmbeddingFeatureExtractor, W2VFeatureExtractor, D2VFeatureExtractor
 from hparams import HParams
 from models.DabaCnnAutoencoder import DabaCnnAutoencoder
@@ -38,6 +39,8 @@ class NNHashEncoder(object):
         encode[np.logical_not(mask)] = 0
         return encode.flatten()
 
+    def clean_and_encode_query(self, words: List[str]):
+        return self.encode_batch(cleanQuery(words))
 
     def load(self, restore_last=True):
         checkpoint_path = f"./checkpoints/train_{str(self.model)}"
