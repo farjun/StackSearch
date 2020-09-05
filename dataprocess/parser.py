@@ -3,8 +3,7 @@ from Features.FeatureExtractors import FeatureExtractor
 from dataprocess.models import Post
 from dataprocess.cleaners import cleanString
 from hparams import HParams
-
-
+from gensim.models.doc2vec import TaggedDocument
 class XmlParser(object):
     def __init__(self, postsFilePath, CommentsFilePath = None, maxNumOfSamples = HParams.DATASET_SIZE):
         self.maxNumOfSamples = maxNumOfSamples
@@ -16,12 +15,16 @@ class XmlParser(object):
         post.title = cleanString(post.title)
         return post
 
-    def getSentsGenerator(self):
+    def getSentsGenerator(self, tagged=False):
         postsIter = iter(self)
 
         def gen():
-            for post in postsIter:
-                res = post.body.split()
+            for i, post in enumerate(postsIter):
+                title_tokens = post.title.split()
+                if not tagged:
+                    res = title_tokens
+                else:
+                    res = TaggedDocument(title_tokens, [i])
                 yield res
 
         return gen

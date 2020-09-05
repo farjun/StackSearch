@@ -123,3 +123,25 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
             toReport.reset_states()
 
     nnHashEncoder.save()
+
+
+def train_embedding_word2vec():
+    from dataprocess.parser import XmlParser
+    from gensim.models import Word2Vec
+    xmlParser = XmlParser(HParams.filePath)  #TODO SET TO FULL DATA
+    tmp = ord('z') - ord('a') + 7
+    model = Word2Vec(size=(HParams.MAX_SENTENCE_DIM * tmp), window=10, min_count=1, workers=4)
+    model.build_vocab((xmlParser.getSentsGenerator())())
+    model.train((xmlParser.getSentsGenerator())(), total_examples=model.corpus_count, epochs=model.iter)
+    model.save(HParams.word2vecFilePath)
+
+
+def train_embedding_doc2vec():
+    from dataprocess.parser import XmlParser
+    from gensim.models import Doc2Vec
+    xmlParser = XmlParser(HParams.filePath)  #TODO SET TO FULL DATA
+    tmp = ord('z') - ord('a') + 7
+    model = Doc2Vec(vector_size=(HParams.MAX_SENTENCE_DIM * tmp), min_count=2, epochs=40)
+    model.build_vocab((xmlParser.getSentsGenerator(tagged=True))())
+    model.train((xmlParser.getSentsGenerator(tagged=True))(), total_examples=model.corpus_count, epochs=model.iter)
+    model.save(HParams.doc2vecFilePath)

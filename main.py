@@ -31,7 +31,8 @@ def saveIndex():
     index.save()
     return index
 
-def saveYabaDabaIndex(saveIndexPath = None):
+
+def saveYabaDabaIndex():
     xmlParser = XmlParser(HParams.filePath)
     indexPath = saveIndexPath or os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=True)
@@ -44,7 +45,11 @@ def saveYabaDabaIndex(saveIndexPath = None):
     index.save()
     return index
 
-def runSearch(index, searchQuery = None):
+
+def runSearch(index, searchQuery=None):
+    print('='*10)
+    print(searchQuery)
+    print('='*10)
     wordsArr = cleanQuery(searchQuery)
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
@@ -61,6 +66,21 @@ def main():
     print(runSearch(index, "What are the advantages of using SVN over CVS"))
     print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
     print(index.size())
+    print(encodedVecs)  # TODO check why encodedVecs are the same for diff sentences
+    print(index.search(encodedVecs, top_k=3))
+    print(index.search(encodedVecs, top_k=2))
+    print(index.search(encodedVecs, top_k=1))
+
 
 if __name__ == '__main__':
     main()
+    ## Train
+    # train_partial(epochs=1000, restore_last=False, progress_per_step=100)
+    # index = saveYabaDabaIndex()
+
+    ## Load
+    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    index = MinHashIndex(indexPath, overwrite=False)
+
+    runSearch(index, "What are the advantages of using SVN over CVS")
+    runSearch(index, "SVN over CVS")

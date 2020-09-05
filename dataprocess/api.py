@@ -1,6 +1,6 @@
 from random import random
 
-from Features.FeatureExtractors import FeatureExtractor, NNWordEmbeddingFeatureExtractor
+from Features.FeatureExtractors import FeatureExtractor, NNWordEmbeddingFeatureExtractor, W2VFeatureExtractor, D2VFeatureExtractor
 import tensorflow as tf
 
 from dataprocess.parser import XmlParser
@@ -57,7 +57,8 @@ def get_partial_data_set_titles(featureExtractor: FeatureExtractor):
     return ds
 
 
-def resolve_data_set(dataset_type: str, featureExtractor = NNWordEmbeddingFeatureExtractor()):
+
+def resolve_data_set(dataset_type: str, featureExtractor=D2VFeatureExtractor()):
     default = "example"
     types = {
         default: get_data_set_example,
