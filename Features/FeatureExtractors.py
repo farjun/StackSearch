@@ -74,11 +74,11 @@ class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
 
 class W2VFeatureExtractor(FeatureExtractor):
 
-    def __init__(self, dim=None):
+    def __init__(self, dim=None, numOfWordsToDrop=0):
         # see https://radimrehurek.com/gensim/auto_examples/tutorials/run_doc2vec_lee.html#sphx-glr-auto-examples-tutorials-run-doc2vec-lee-py
         self.dim = dim or (HParams.MAX_SENTENCE_DIM * self.get_feature_dim())
         self.model = None
-        self._path = HParams.word2vecFilePath
+        self._path = os.path.join(HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}")
         if os.path.exists(self._path):
             self.model = Word2Vec.load(self._path)
         else:
@@ -107,11 +107,12 @@ class W2VFeatureExtractor(FeatureExtractor):
 
 class D2VFeatureExtractor(FeatureExtractor):
 
-    def __init__(self, dim=None):
+    def __init__(self, dim=None, numOfWordsToDrop=0):
         # see https://radimrehurek.com/gensim/auto_examples/tutorials/run_doc2vec_lee.html#sphx-glr-auto-examples-tutorials-run-doc2vec-lee-py
         self.dim = dim or (HParams.MAX_SENTENCE_DIM * self.get_feature_dim())
         self.model = None
-        self._path = HParams.doc2vecFilePath
+
+        self._path = os.path.join(HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}")
         if os.path.exists(self._path):
             self.model = Doc2Vec.load(self._path)
         else:

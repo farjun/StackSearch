@@ -58,7 +58,7 @@ def get_partial_data_set_titles(featureExtractor: FeatureExtractor):
 
 
 
-def resolve_data_set(dataset_type: str, featureExtractor=D2VFeatureExtractor()):
+def resolve_data_set(dataset_type: str, featureExtractor=W2VFeatureExtractor()):
     default = "example"
     types = {
         default: get_data_set_example,

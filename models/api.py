@@ -30,7 +30,9 @@ class NNHashEncoder(object):
 
 
     def encode_batch(self, words: List[str]):
-        feature = np.array(self.featureExtractor.get_feature_batch(words))
+        feature = self.featureExtractor.get_feature_batch(words)
+        print('feature extractor res:', feature)
+        feature = np.array(feature)
         feature = feature[tf.newaxis, ...]
         encode = self.model.encode(feature)
         encode = encode.numpy()
@@ -62,7 +64,7 @@ class NNHashEncoder(object):
 
 
 def getNNHashEncoder(restore_last=True):
-    featureExtractor = D2VFeatureExtractor()
+    featureExtractor = W2VFeatureExtractor()
     # featureExtractor = NNWordEmbeddingFeatureExtractor()
     model = DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
     discriminator = DabaDiscriminator()

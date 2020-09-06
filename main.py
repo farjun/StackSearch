@@ -32,7 +32,7 @@ def saveIndex():
     return index
 
 
-def saveYabaDabaIndex():
+def saveYabaDabaIndex(saveIndexPath=None):
     xmlParser = XmlParser(HParams.filePath)
     indexPath = saveIndexPath or os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=True)
@@ -53,23 +53,21 @@ def runSearch(index, searchQuery=None):
     wordsArr = cleanQuery(searchQuery)
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
+    print(encodedVecs)  # TODO check why encodedVecs are the same for diff sentences
     return index.search(encodedVecs, top_k=10)
 
+
 def main():
-    train_partial(epochs=10, restore_last=True, progress_per_step=10)
+    # train_partial(epochs=100, restore_last=True, progress_per_step=10)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    index = MinHashIndex(indexPath)
-    if index.size() != HParams.DATASET_SIZE:
-        print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
-                                                                                       index.size()))
-        index = saveYabaDabaIndex()
+    index = MinHashIndex(indexPath, overwrite=False)
+    # if index.size() != HParams.DATASET_SIZE:
+    #     print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
+    #                                                                                    index.size()))
+    #     index = saveYabaDabaIndex()
     print(runSearch(index, "What are the advantages of using SVN over CVS"))
     print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
     print(index.size())
-    print(encodedVecs)  # TODO check why encodedVecs are the same for diff sentences
-    print(index.search(encodedVecs, top_k=3))
-    print(index.search(encodedVecs, top_k=2))
-    print(index.search(encodedVecs, top_k=1))
 
 
 if __name__ == '__main__':
@@ -79,8 +77,8 @@ if __name__ == '__main__':
     # index = saveYabaDabaIndex()
 
     ## Load
-    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    index = MinHashIndex(indexPath, overwrite=False)
+    # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    # index = MinHashIndex(indexPath, overwrite=False)
 
-    runSearch(index, "What are the advantages of using SVN over CVS")
-    runSearch(index, "SVN over CVS")
+    # runSearch(index, "What are the advantages of using SVN over CVS")
+    # runSearch(index, "SVN over CVS")

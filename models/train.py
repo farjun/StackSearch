@@ -3,7 +3,7 @@ from datetime import datetime
 import numpy as np
 from tqdm import tqdm
 
-from Features.FeatureExtractors import NNWordEmbeddingFeatureExtractor
+from Features.FeatureExtractors import NNWordEmbeddingFeatureExtractor, W2VFeatureExtractor, D2VFeatureExtractor
 from dataprocess.api import resolve_data_set
 import tensorflow as tf
 import tensorflow_probability as tfp
@@ -48,7 +48,7 @@ def getGeneratorLoss(lossObject):
     return generator_research_loss
 
 
-def getTrainStep(model, discriminator, numOfWOrdsTODrop = 2):
+def getTrainStep(model, discriminator, numOfWordsToDrop = 2):
     #optimizers
     generator_optimizer = tf.keras.optimizers.Adam(1e-4)
     discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
@@ -74,7 +74,7 @@ def getTrainStep(model, discriminator, numOfWOrdsTODrop = 2):
 
             encoded_data = model.encode(noisedData, training=True)
             genOutput = model.decode(encoded_data, training=True)
-            tf.print(encoded_data)
+            # tf.print(encoded_data)  # TODO
             randomVec = randomVecDistribution.sample()
             fake_vec_output = discriminator(encoded_data, training=True)
             real_vec_output = discriminator(randomVec, training=True)
@@ -101,8 +101,8 @@ def getTrainStep(model, discriminator, numOfWOrdsTODrop = 2):
 
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
                    save_result_per_epoch=5, restore_last=False, dataset_type: str = 'partial_titles'):
-    ds = resolve_data_set(dataset_type, featureExtractor=NNWordEmbeddingFeatureExtractor())
-    noisedDs = resolve_data_set(dataset_type, featureExtractor=NNWordEmbeddingFeatureExtractor(numOfWordsToDrop=2))
+    ds = resolve_data_set(dataset_type, featureExtractor=W2VFeatureExtractor())
+    noisedDs = resolve_data_set(dataset_type, featureExtractor=W2VFeatureExtractor(numOfWordsToDrop=2))
     nnHashEncoder = getNNHashEncoder(restore_last)
     train_step, reportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
     writer = TfWriter()
@@ -112,7 +112,8 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
         if epoch % save_result_per_epoch == 0:
             nnHashEncoder.save()
 
-        for data, noisedData in tqdm(zip(ds, noisedDs), desc="epoc run", total = HParams.DATASET_SIZE):
+        for data, noisedData in zip(ds, noisedDs):
+        # for data, noisedData in tqdm(zip(ds, noisedDs), desc="epoc run", total = HParams.DATASET_SIZE):
             train_step(data, noisedData)
             if step % progress_per_step == 0:
                 writer.reprortProgressMany(reportStuff, step)
@@ -125,23 +126,24 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
     nnHashEncoder.save()
 
 
-def train_embedding_word2vec():
+def train_embedding_word2vec(numOfWordsToDrop=0):
     from dataprocess.parser import XmlParser
     from gensim.models import Word2Vec
     xmlParser = XmlParser(HParams.filePath)  #TODO SET TO FULL DATA
     tmp = ord('z') - ord('a') + 7
-    model = Word2Vec(size=(HParams.MAX_SENTENCE_DIM * tmp), window=10, min_count=1, workers=4)
+    model = Word2Vec(size=(HParams.MAX_SENTENCE_DIM * tmp), window=10, min_count=1, workers=4,
+                     negative=numOfWordsToDrop)
     model.build_vocab((xmlParser.getSentsGenerator())())
     model.train((xmlParser.getSentsGenerator())(), total_examples=model.corpus_count, epochs=model.iter)
-    model.save(HParams.word2vecFilePath)
+    model.save(os.path.join(HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}"))
 
 
-def train_embedding_doc2vec():
+def train_embedding_doc2vec(numOfWordsToDrop=0):
     from dataprocess.parser import XmlParser
     from gensim.models import Doc2Vec
     xmlParser = XmlParser(HParams.filePath)  #TODO SET TO FULL DATA
     tmp = ord('z') - ord('a') + 7
-    model = Doc2Vec(vector_size=(HParams.MAX_SENTENCE_DIM * tmp), min_count=2, epochs=40)
+    model = Doc2Vec(vector_size=(HParams.MAX_SENTENCE_DIM * tmp), min_count=2, epochs=40, negative=numOfWordsToDrop)
     model.build_vocab((xmlParser.getSentsGenerator(tagged=True))())
     model.train((xmlParser.getSentsGenerator(tagged=True))(), total_examples=model.corpus_count, epochs=model.iter)
-    model.save(HParams.doc2vecFilePath)
+    model.save(os.path.join(HParams.embeddingFilePath, f"doc2v_embedding_{numOfWordsToDrop}"))
