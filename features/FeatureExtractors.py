@@ -8,6 +8,7 @@ import os
 import hparams
 import tensorflow as tf
 
+
 class FeatureExtractor:
 
     def get_feature_dim(self):
@@ -21,7 +22,6 @@ class FeatureExtractor:
         for word in words:
             result.append(self.get_feature(word))
         return result
-
 
 
 class HistogramFeatureExtractor(FeatureExtractor):
@@ -54,12 +54,12 @@ class WordEmbeddingToMatrixFeatureExtractor(HistogramFeatureExtractor):
 
     def get_feature_batch(self, words: List[str]) -> np.ndarray:
         result = np.zeros((hparams.HParams.MAX_SENTENCE_DIM, self.get_feature_dim()), dtype=np.float32)
-        for i,word in enumerate(words):
+        for i, word in enumerate(words):
             wordVec = self.get_feature(word)
             if np.max(wordVec) != 0:
                 wordVec = wordVec / np.max(wordVec)
                 wordVec = np.around(wordVec)
-            result[i,:] = wordVec
+            result[i, :] = wordVec
 
         if self.numOfWordsToDrop > 0:
             result[np.random.choice(result.shape[0], size=self.numOfWordsToDrop)] = 0
@@ -67,10 +67,11 @@ class WordEmbeddingToMatrixFeatureExtractor(HistogramFeatureExtractor):
         result = result[..., tf.newaxis]
         return result
 
-    def get_noised_feature_batch(self, words:List[str], numOfWordsToDrop = 2):
+    def get_noised_feature_batch(self, words: List[str], numOfWordsToDrop=2):
         features = self.get_feature_batch(words)
         features[np.random.choice(features.shape[0], size=numOfWordsToDrop)] = 0
         return features
+
 
 class W2VFeatureExtractor(FeatureExtractor):
 
@@ -88,9 +89,9 @@ class W2VFeatureExtractor(FeatureExtractor):
         return ord('z') - ord('a') + 7
 
     def get_feature(self, word: str):
-        missing_word_case = np.array([0.0001] * self.dim)
         if word in self.model.wv:
             return self.model.wv[word]
+        missing_word_case = np.array([0.0001] * self.dim)
         return missing_word_case
 
     def get_feature_batch(self, words: List[str], maxSentenceDim=hparams.HParams.MAX_SENTENCE_DIM) -> np.ndarray:
@@ -103,6 +104,40 @@ class W2VFeatureExtractor(FeatureExtractor):
         result = sum_vec / len(words)
         result.resize((maxSentenceDim, self.get_feature_dim(), 1))
         return result
+
+
+class FeatureExtractor_Temp(FeatureExtractor):
+    # TODO this is a temp class which immitate D2V with W2V
+
+    def __init__(self, dim=200, numOfWordsToDrop=0):
+        self.dim = dim
+        self.numOfWordsToDrop = numOfWordsToDrop
+        self.model = None
+        self._path = os.path.join(hparams.HParams.embeddingFilePath, f"word2v_embedding")
+        if os.path.exists(self._path):
+            self.model = Word2Vec.load(self._path)
+        else:
+            raise Exception('call train_embedding_doc2vec from models/train.py')
+
+    def get_feature_dim(self):
+        return self.dim
+
+    def get_feature(self, word: str):
+        if word in self.model.wv:
+            return self.model.wv[word]
+        missing_word_case = np.full(self.dim, 0.0001)
+        return missing_word_case
+
+    def get_feature_batch(self, words: List[str], maxSentenceDim=hparams.HParams.MAX_SENTENCE_DIM) -> np.ndarray:
+        if len(words) == 0:
+            raise Exception("0 length sentence.")
+        out = np.zeros(shape=(maxSentenceDim, self.get_feature_dim()))
+        for i in range(min(len(words), maxSentenceDim)):
+            out[i] = self.get_feature(words[i])
+        if self.numOfWordsToDrop > 0:
+            indexes = np.random.choice(maxSentenceDim, size=self.numOfWordsToDrop, replace=False)
+            out[indexes] = 0
+        return out
 
 
 class D2VFeatureExtractor(FeatureExtractor):
@@ -132,3 +167,9 @@ class D2VFeatureExtractor(FeatureExtractor):
         result.resize((maxSentenceDim, self.get_feature_dim(), 1))
         return result
 
+
+if __name__ == '__main__':
+    ret = frozenset(np.random.choice(100, size=99, replace=False))
+    for i in range(100):
+        if i not in ret:
+            print(i)
