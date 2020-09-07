@@ -77,6 +77,15 @@ def main(**kwargs):
     # print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
     # print(index.size())
 
+def generate_w2v():
+    import models.train
+    models.train.train_embedding_word2vec_new()
 
 if __name__ == '__main__':
-    main(epochs=10, restore_last=True, progress_per_step=2)
+    # generate_w2v()
+    main(epochs=100, restore_last=False, progress_per_step=2)
+    runSearches([
+        "What are the advantages of using SVN over CVS",
+        "ASP.Net Custom Client-Side Validation",
+        "py pasjdasdj  aopsdk kdoas odkasldas dkasl; ;lsad;aldalkasdl;k asdasd asdas "
+    ])

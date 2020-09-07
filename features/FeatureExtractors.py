@@ -83,7 +83,8 @@ class W2VFeatureExtractor(FeatureExtractor):
         if os.path.exists(self._path):
             self.model = Word2Vec.load(self._path)
         else:
-            raise Exception('call train_embedding_word2vec from models/train.py')
+            pass
+            # raise Exception('call train_embedding_word2vec from models/train.py')
 
     def get_feature_dim(self):
         return ord('z') - ord('a') + 7
@@ -137,7 +138,7 @@ class FeatureExtractor_Temp(FeatureExtractor):
         if self.numOfWordsToDrop > 0:
             indexes = np.random.choice(maxSentenceDim, size=self.numOfWordsToDrop, replace=False)
             out[indexes] = 0
-        return out
+        return out[..., np.newaxis]
 
 
 class D2VFeatureExtractor(FeatureExtractor):

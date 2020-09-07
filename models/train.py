@@ -140,6 +140,16 @@ def train_embedding_word2vec(numOfWordsToDrop=0):
     model.train((xmlParser.getSentsGenerator())(), total_examples=model.corpus_count, epochs=model.iter)
     model.save(os.path.join(HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}"))
 
+def train_embedding_word2vec_new():
+    from dataprocess.parser import XmlParser
+    from gensim.models import Word2Vec
+    xmlParser = XmlParser(HParams.filePath)
+    vec_size = 200
+    model = Word2Vec(size=(vec_size), window=10, min_count=1, workers=4)
+    model.build_vocab((xmlParser.getSentsGenerator())())
+    model.train((xmlParser.getSentsGenerator())(), total_examples=model.corpus_count, epochs=model.iter)
+    model.save(os.path.join(HParams.embeddingFilePath, f"word2v_embedding"))
+
 
 def train_embedding_doc2vec(numOfWordsToDrop=0):
     from dataprocess.parser import XmlParser
@@ -150,3 +160,7 @@ def train_embedding_doc2vec(numOfWordsToDrop=0):
     model.build_vocab((xmlParser.getSentsGenerator(tagged=True))())
     model.train((xmlParser.getSentsGenerator(tagged=True))(), total_examples=model.corpus_count, epochs=model.iter)
     model.save(os.path.join(HParams.embeddingFilePath, f"doc2v_embedding_{numOfWordsToDrop}"))
+
+
+if __name__ == '__main__':
+    train_embedding_word2vec_new()
