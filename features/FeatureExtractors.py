@@ -95,7 +95,7 @@ class W2VFeatureExtractor(FeatureExtractor):
 
     def get_feature_batch(self, words: List[str], maxSentenceDim=hparams.HParams.MAX_SENTENCE_DIM) -> np.ndarray:
         if len(words) == 0:
-            raise Exception("0 length sentence.")
+            return np.zeros(self.dim, dtype=np.float32)
         sum_vec = np.zeros(self.dim, dtype=np.float32)
         for word in words:
             word_vec = self.get_feature(word)
