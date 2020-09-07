@@ -58,27 +58,17 @@ def runSearch(index, searchQuery=None):
 
 
 def main():
-    # train_partial(epochs=100, restore_last=True, progress_per_step=10)
+    train_partial(epochs=1000, restore_last=False, progress_per_step=2)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=False)
-    # if index.size() != HParams.DATASET_SIZE:
-    #     print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
-    #                                                                                    index.size()))
-    #     index = saveYabaDabaIndex()
-    print(runSearch(index, "What are the advantages of using SVN over CVS"))
-    print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
-    print(index.size())
+    if index.size() != HParams.DATASET_SIZE:
+        print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
+                                                                                       index.size()))
+        index = saveYabaDabaIndex()
+    # print(runSearch(index, "What are the advantages of using SVN over CVS"))
+    # print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
+    # print(index.size())
 
 
 if __name__ == '__main__':
     main()
-    ## Train
-    # train_partial(epochs=1000, restore_last=False, progress_per_step=100)
-    # index = saveYabaDabaIndex()
-
-    ## Load
-    # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    # index = MinHashIndex(indexPath, overwrite=False)
-
-    # runSearch(index, "What are the advantages of using SVN over CVS")
-    # runSearch(index, "SVN over CVS")
