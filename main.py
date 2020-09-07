@@ -56,6 +56,11 @@ def runSearch(index, searchQuery=None):
     print(encodedVecs)  # TODO check why encodedVecs are the same for diff sentences
     return index.search(encodedVecs, top_k=10)
 
+def runSearches(searches:list):
+    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    index = MinHashIndex(indexPath, overwrite=False)
+    for search in searches:
+        runSearch(index,search)
 
 def main(**kwargs):
     """
