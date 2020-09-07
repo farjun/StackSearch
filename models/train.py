@@ -116,7 +116,6 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
                 # plt.figure(step + 2)
                 # plt.imshow(noisedData.numpy()[0].reshape(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractor().get_feature_dim()))
                 # plt.show()
-
             train_step(data, noisedData)
             if step % progress_per_step == 0:
                 writer.reprortProgressManyWithNameScope(reportStuff, step)
