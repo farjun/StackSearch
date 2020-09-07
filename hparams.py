@@ -1,6 +1,8 @@
 from os import path
 
 class HParams:
+    CROSS_ENTROPY_LOSS_LAMBDA = 1
+    RECONSTRUCTION_LOSS_LAMBDA = 1
     DATASET_SIZE = 2 # takes first DATASET_SIZE posts out of the full dataset
     filePath = path.join("data", "Posts.xml")
     embeddingFilePath = path.join("checkpoints", "word2vec")

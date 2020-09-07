@@ -55,7 +55,9 @@ def getGeneratorLoss(lossObject):
         crossEntropyLoss = cross_entropy(tf.ones_like(fake_output), fake_output)
         generatorReconstructionLosssReport(reconstructionLoss)
         generatorVsDiscriminatorLosssReport(crossEntropyLoss)
-        return reconstructionLoss + crossEntropyLoss
+        lambda1 = HParams.RECONSTRUCTION_LOSS_LAMBDA
+        lambda2 = HParams.CROSS_ENTROPY_LOSS_LAMBDA
+        return lambda1*reconstructionLoss + lambda2*crossEntropyLoss
 
     return generator_research_loss, [generatorReconstructionLosssReport, generatorVsDiscriminatorLosssReport]
 
