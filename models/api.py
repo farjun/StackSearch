@@ -65,7 +65,6 @@ class NNHashEncoder(object):
 
 def getNNHashEncoder(restore_last=True):
     featureExtractor = W2VFeatureExtractor()
-    # featureExtractor = NNWordEmbeddingFeatureExtractor()
     model = DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
     discriminator = DabaDiscriminator()
     return NNHashEncoder(model, discriminator, featureExtractor, restore_last=restore_last)

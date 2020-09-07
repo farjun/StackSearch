@@ -1,7 +1,7 @@
 from os import path
 
 class HParams:
-    DATASET_SIZE = 8000 # takes first DATASET_SIZE posts out of the full dataset
+    DATASET_SIZE = 2 # takes first DATASET_SIZE posts out of the full dataset
     filePath = path.join("data", "partial", "Posts.xml")
     embeddingFilePath = path.join("checkpoints", "word2vec")
     BATCH_SIZE = 4

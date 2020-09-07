@@ -25,7 +25,7 @@ class DabaCnnAutoencoder(tf.keras.Model):
         self.down_c1 = tf.keras.layers.Conv2D(300, kernel_size=(5, latent_space_dim), strides=2, padding='same', activation='relu')
         self.down_c2 = tf.keras.layers.Conv2D(600, kernel_size=(5, 1), strides=2)
         self.down_m3 = tfa.layers.Maxout(300)
-        self.down_d1 = tf.keras.layers.Dense(latent_space_dim, activation=tf.keras.activations.tanh)
+        self.down_d1 = tf.keras.layers.Dense(latent_space_dim, activation="sigmoid")
 
         #decode
         self.up_d1 = Dense(512, activation='relu')

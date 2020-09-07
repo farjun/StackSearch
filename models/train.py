@@ -24,47 +24,53 @@ class TfWriter(object):
         with self.writer.as_default():
             tf.summary.scalar("loss", loss.result(), step=step)
 
-    def reprortProgressMany(self, stuff, step):
+    def reprortProgressMany(self, stuff:list, step):
         with self.writer.as_default():
             for toReport in stuff:
                 tf.summary.scalar(toReport.name, toReport.result(), step=step)
 
+    def reprortProgressManyWithNameScope(self, stuff:dict, step: int):
+        with self.writer.as_default():
+            for nameScope, toReportMany in stuff.items():
+                with tf.name_scope(nameScope):
+                    for toReport in toReportMany:
+                        tf.summary.scalar(toReport.name, toReport.result(), step=step)
+
 def getDiscriminatorLoss():
+    discriminator_research_loss_metric = tf.keras.metrics.Mean(name='discriminator_research_loss')
+
     def discriminator_research_loss(real_output, fake_output):
         real_loss = cross_entropy(tf.ones_like(real_output), real_output)
         fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
         total_loss = real_loss + fake_loss
+        discriminator_research_loss_metric(total_loss)
         return total_loss
 
-    return discriminator_research_loss
+    return discriminator_research_loss, [discriminator_research_loss_metric]
 
 def getGeneratorLoss(lossObject):
-
+    generatorVsDiscriminatorLosssReport = tf.keras.metrics.Mean(name='gen-vs-discriminator-train_loss')
+    generatorReconstructionLosssReport = tf.keras.metrics.Mean(name='gen-reconstruction-train_loss')
     def generator_research_loss(fake_output, data, genOutput):
         reconstructionLoss = lossObject(data, genOutput)
         crossEntropyLoss = cross_entropy(tf.ones_like(fake_output), fake_output)
+        generatorReconstructionLosssReport(reconstructionLoss)
+        generatorVsDiscriminatorLosssReport(crossEntropyLoss)
         return reconstructionLoss + crossEntropyLoss
 
-    return generator_research_loss
+    return generator_research_loss, [generatorReconstructionLosssReport, generatorVsDiscriminatorLosssReport]
 
 
 def getTrainStep(model, discriminator, numOfWordsToDrop = 2):
+
     #optimizers
     generator_optimizer = tf.keras.optimizers.Adam(1e-4)
     discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
     #derivetive by
     reconstructionLoss = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
-    genTrainLoss = getGeneratorLoss(reconstructionLoss)
-    discTrainLoss = getDiscriminatorLoss()
-
-    #report stuff
-    generator_train_loss = tf.keras.metrics.Mean(name='gen-train_loss')
-    discriminator_train_loss = tf.keras.metrics.Mean(name='disc-train_loss')
-    generator_train_accuracy = tf.keras.metrics.BinaryAccuracy(name='gen-train_accuracy')
-    discriminator_train_accuracy = tf.keras.metrics.BinaryAccuracy(name='disc-train_accuracy')
-    reconstructionAccuracy = tf.keras.metrics.Mean(name='autoencoder_reconstruction_loss')
-
+    genTrainLoss, toReportGen = getGeneratorLoss(reconstructionLoss)
+    discTrainLoss, toReportDisc = getDiscriminatorLoss()
 
     #prob distributions
     randomVecDistribution = tfp.distributions.Bernoulli(probs=tf.constant(0.5, shape = (HParams.BATCH_SIZE, HParams.OUTPUT_DIM)))
@@ -89,14 +95,7 @@ def getTrainStep(model, discriminator, numOfWordsToDrop = 2):
         generator_optimizer.apply_gradients(zip(autoencoder_gradients, model.trainable_variables))
         discriminator_optimizer.apply_gradients(zip(discriminator_gradients, discriminator.trainable_variables))
 
-        generator_train_loss(generator_loss)
-        discriminator_train_loss(discriminator_loss)
-
-        generator_train_accuracy.update_state(tf.zeros_like(real_vec_output), real_vec_output)
-        discriminator_train_accuracy.update_state(tf.ones_like(real_vec_output), real_vec_output)
-        reconstructionAccuracy.update_state(genOutput, data)
-
-    return train_step, [generator_train_loss, discriminator_train_loss, generator_train_accuracy, discriminator_train_accuracy, reconstructionAccuracy]
+    return train_step, {"Gen": toReportGen, "Disc" :toReportDisc}
 
 
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
@@ -116,12 +115,13 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
         # for data, noisedData in tqdm(zip(ds, noisedDs), desc="epoc run", total = HParams.DATASET_SIZE):
             train_step(data, noisedData)
             if step % progress_per_step == 0:
-                writer.reprortProgressMany(reportStuff, step)
+                writer.reprortProgressManyWithNameScope(reportStuff, step)
 
             step += 1
 
-        for toReport in reportStuff:
-            toReport.reset_states()
+        for toReportMany in reportStuff.values():
+            for toReport in toReportMany:
+                toReport.reset_states()
 
     nnHashEncoder.save()
 
@@ -129,7 +129,7 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
 def train_embedding_word2vec(numOfWordsToDrop=0):
     from dataprocess.parser import XmlParser
     from gensim.models import Word2Vec
-    xmlParser = XmlParser(HParams.filePath)  #TODO SET TO FULL DATA
+    xmlParser = XmlParser(HParams.filePath)
     tmp = ord('z') - ord('a') + 7
     model = Word2Vec(size=(HParams.MAX_SENTENCE_DIM * tmp), window=10, min_count=1, workers=4,
                      negative=numOfWordsToDrop)
