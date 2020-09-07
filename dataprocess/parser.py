@@ -47,7 +47,9 @@ class XmlParser(object):
 
         def gen():
             for post in postsIter:
-                res = post.title.split()
+                res = post.toWordsArray()
+                if len(res) == 0:
+                    continue
                 if featureExtractor:
                     res = featureExtractor.get_feature_batch(res)
 
