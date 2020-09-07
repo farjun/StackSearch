@@ -5,7 +5,6 @@ import tensorflow as tf
 
 # from tqdm.auto import tqdm # Uncomment for Colab-Notebook
 from dataprocess.cleaners import cleanQuery
-from Features.FeatureExtractors import HistogramFeatureExtractor, NNWordEmbeddingFeatureExtractor, W2VFeatureExtractor, D2VFeatureExtractor
 from hparams import HParams
 from models.DabaCnnAutoencoder import DabaCnnAutoencoder
 from models.YabaDabaDiscriminator import DabaDiscriminator
@@ -31,7 +30,6 @@ class NNHashEncoder(object):
 
     def encode_batch(self, words: List[str]):
         feature = self.featureExtractor.get_feature_batch(words)
-        print('feature extractor res:', feature)
         feature = np.array(feature)
         feature = feature[tf.newaxis, ...]
         encode = self.model.encode(feature)
@@ -64,7 +62,7 @@ class NNHashEncoder(object):
 
 
 def getNNHashEncoder(restore_last=True):
-    featureExtractor = W2VFeatureExtractor()
+    featureExtractor = HParams.getFeatureExtractor()
     model = DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
     discriminator = DabaDiscriminator()
     return NNHashEncoder(model, discriminator, featureExtractor, restore_last=restore_last)

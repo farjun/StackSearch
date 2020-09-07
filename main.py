@@ -58,7 +58,7 @@ def runSearch(index, searchQuery=None):
 
 
 def main():
-    train_partial(epochs=1000, restore_last=False, progress_per_step=2)
+    train_partial(epochs=10, restore_last=True, progress_per_step=2)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=False)
     if index.size() != HParams.DATASET_SIZE:

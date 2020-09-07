@@ -1,5 +1,5 @@
 
-from hparams import HParams
+import hparams
 from dataprocess.cleaners import englishStopWords
 class XmlModel(object):
     pass
@@ -51,7 +51,7 @@ class Post(XmlModel):
 
         return None
 
-    def toWordsArray(self, limit = HParams.MAX_SENTENCE_DIM):
+    def toWordsArray(self, limit = hparams.HParams.MAX_SENTENCE_DIM):
         words = list()
         for w in self.title.split():
             if w not in englishStopWords:

@@ -6,7 +6,7 @@ from tqdm import tqdm  # Comment for Colab-Notebook
 import os
 from datetime import datetime
 import tensorflow as tf
-from Features.FeatureExtractors import FeatureExtractor, HistogramFeatureExtractor
+from features.FeatureExtractors import FeatureExtractor, HistogramFeatureExtractor
 import random
 import models.BasicFCN
 from dataprocess.parser import XmlParser

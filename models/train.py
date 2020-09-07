@@ -2,8 +2,7 @@ import os
 from datetime import datetime
 import numpy as np
 from tqdm import tqdm
-
-from Features.FeatureExtractors import NNWordEmbeddingFeatureExtractor, W2VFeatureExtractor, D2VFeatureExtractor
+import matplotlib.pyplot as plt
 from dataprocess.api import resolve_data_set
 import tensorflow as tf
 import tensorflow_probability as tfp
@@ -100,31 +99,32 @@ def getTrainStep(model, discriminator, numOfWordsToDrop = 2):
 
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
                    save_result_per_epoch=5, restore_last=False, dataset_type: str = 'partial_titles'):
-    ds = resolve_data_set(dataset_type, featureExtractor=W2VFeatureExtractor())
-    noisedDs = resolve_data_set(dataset_type, featureExtractor=W2VFeatureExtractor(numOfWordsToDrop=2))
+    ds = resolve_data_set(dataset_type, featureExtractor=HParams.getFeatureExtractor())
+    noisedDs = resolve_data_set(dataset_type, featureExtractor=HParams.getFeatureExtractor(numOfWordsToDrop=2))
     nnHashEncoder = getNNHashEncoder(restore_last)
     train_step, reportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
     writer = TfWriter()
 
     step = 0
     for epoch in tqdm(range(epochs_offset, epochs + epochs_offset), desc="train epochs"):
-        if epoch % save_result_per_epoch == 0:
-            nnHashEncoder.save()
-
         for data, noisedData in zip(ds, noisedDs):
         # for data, noisedData in tqdm(zip(ds, noisedDs), desc="epoc run", total = HParams.DATASET_SIZE):
+            if epoch % save_result_per_epoch == 0:
+                plt.figure(step + 1)
+                plt.imshow(data.numpy()[0].reshape(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractor().get_feature_dim()))
+                plt.figure(step + 2)
+                plt.imshow(noisedData.numpy()[0].reshape(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractor().get_feature_dim()))
+
             train_step(data, noisedData)
             if step % progress_per_step == 0:
                 writer.reprortProgressManyWithNameScope(reportStuff, step)
 
             step += 1
 
+        nnHashEncoder.save()
         for toReportMany in reportStuff.values():
             for toReport in toReportMany:
                 toReport.reset_states()
-
-    nnHashEncoder.save()
-
 
 def train_embedding_word2vec(numOfWordsToDrop=0):
     from dataprocess.parser import XmlParser

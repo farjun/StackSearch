@@ -5,11 +5,11 @@ from nltk.corpus import brown
 from gensim.models import Word2Vec, Doc2Vec
 import os
 
-from hparams import HParams
+import hparams
 import tensorflow as tf
 
-
 class FeatureExtractor:
+
     def get_feature_dim(self):
         raise NotImplementedError
 
@@ -40,7 +40,7 @@ class HistogramFeatureExtractor(FeatureExtractor):
         return histogram
 
 
-class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
+class WordEmbeddingToMatrixFeatureExtractor(HistogramFeatureExtractor):
     def __init__(self, numOfWordsToDrop=0):
         super().__init__()
         self.numOfWordsToDrop = numOfWordsToDrop
@@ -53,7 +53,7 @@ class NNWordEmbeddingFeatureExtractor(HistogramFeatureExtractor):
         return np.array(histogram, dtype=np.float32)
 
     def get_feature_batch(self, words: List[str]) -> np.ndarray:
-        result = np.zeros((HParams.MAX_SENTENCE_DIM, self.get_feature_dim()), dtype=np.float32)
+        result = np.zeros((hparams.HParams.MAX_SENTENCE_DIM, self.get_feature_dim()), dtype=np.float32)
         for i,word in enumerate(words):
             wordVec = self.get_feature(word)
             if np.max(wordVec) != 0:
@@ -76,9 +76,9 @@ class W2VFeatureExtractor(FeatureExtractor):
 
     def __init__(self, dim=None, numOfWordsToDrop=0):
         # see https://radimrehurek.com/gensim/auto_examples/tutorials/run_doc2vec_lee.html#sphx-glr-auto-examples-tutorials-run-doc2vec-lee-py
-        self.dim = dim or (HParams.MAX_SENTENCE_DIM * self.get_feature_dim())
+        self.dim = dim or (hparams.HParams.MAX_SENTENCE_DIM * self.get_feature_dim())
         self.model = None
-        self._path = os.path.join(HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}")
+        self._path = os.path.join(hparams.HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}")
         if os.path.exists(self._path):
             self.model = Word2Vec.load(self._path)
         else:
@@ -93,7 +93,7 @@ class W2VFeatureExtractor(FeatureExtractor):
             return self.model.wv[word]
         return missing_word_case
 
-    def get_feature_batch(self, words: List[str], maxSentenceDim=HParams.MAX_SENTENCE_DIM) -> np.ndarray:
+    def get_feature_batch(self, words: List[str], maxSentenceDim=hparams.HParams.MAX_SENTENCE_DIM) -> np.ndarray:
         if len(words) == 0:
             raise Exception("0 length sentence.")
         sum_vec = np.zeros(self.dim, dtype=np.float32)
@@ -109,10 +109,10 @@ class D2VFeatureExtractor(FeatureExtractor):
 
     def __init__(self, dim=None, numOfWordsToDrop=0):
         # see https://radimrehurek.com/gensim/auto_examples/tutorials/run_doc2vec_lee.html#sphx-glr-auto-examples-tutorials-run-doc2vec-lee-py
-        self.dim = dim or (HParams.MAX_SENTENCE_DIM * self.get_feature_dim())
+        self.dim = dim or (hparams.HParams.MAX_SENTENCE_DIM * self.get_feature_dim())
         self.model = None
 
-        self._path = os.path.join(HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}")
+        self._path = os.path.join(hparams.HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}")
         if os.path.exists(self._path):
             self.model = Doc2Vec.load(self._path)
         else:
@@ -125,9 +125,10 @@ class D2VFeatureExtractor(FeatureExtractor):
         # this method shouldn't be in use
         return self.get_feature_batch([word])
 
-    def get_feature_batch(self, words: List[str], maxSentenceDim=HParams.MAX_SENTENCE_DIM) -> np.ndarray:
+    def get_feature_batch(self, words: List[str], maxSentenceDim=hparams.HParams.MAX_SENTENCE_DIM) -> np.ndarray:
         if len(words) == 0:
             raise Exception("0 length sentence.")
         result = self.model.infer_vector(words)
         result.resize((maxSentenceDim, self.get_feature_dim(), 1))
         return result
+

@@ -1,5 +1,5 @@
 import xml.etree.cElementTree as etree
-from Features.FeatureExtractors import FeatureExtractor
+from features.FeatureExtractors import FeatureExtractor
 from dataprocess.models import Post
 from dataprocess.cleaners import cleanString
 from hparams import HParams
