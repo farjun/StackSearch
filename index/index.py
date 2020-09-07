@@ -27,8 +27,6 @@ class MinHashIndex(Index):
         self.minHashGenerator = WeightedMinHashGenerator(HParams.OUTPUT_DIM)
         self.hasher = MinHashLSHForest(num_perm=HParams.OUTPUT_DIM,
                                        l=1)  # performs the document hashing and results using Min Hash
-        print(f"self.indexPickleFilePath:{self.indexPickleFilePath}")
-        print(f"os.path.dirname(self.indexPickleFilePath):{os.path.dirname(self.indexPickleFilePath)}")
         os.makedirs(os.path.dirname(self.indexPickleFilePath), exist_ok=True)
         with open(self.indexPickleFilePath, 'wb') as f:
             f.write(b"")  # create file
