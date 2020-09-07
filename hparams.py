@@ -16,3 +16,4 @@ class HParams:
     def getFeatureExtractor(**kwargs):
         from features.FeatureExtractors import WordEmbeddingToMatrixFeatureExtractor, D2VFeatureExtractor, W2VFeatureExtractor
         return W2VFeatureExtractor(**kwargs)
+
