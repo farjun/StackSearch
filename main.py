@@ -57,11 +57,14 @@ def runSearch(index, searchQuery=None):
     return index.search(encodedVecs, top_k=10)
 
 
-def main():
-    train_partial(epochs=10, restore_last=True, progress_per_step=2)
+def main(**kwargs):
+    """
+    :param kwargs: args which will be passed to train_partial -> train_yabadaba
+    """
+    train_partial(**kwargs)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=False)
-    if index.size() != HParams.DATASET_SIZE:
+    if index.size( ) != HParams.DATASET_SIZE:
         print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
                                                                                        index.size()))
         index = saveYabaDabaIndex()
@@ -71,4 +74,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(epochs=10, restore_last=True, progress_per_step=2)
