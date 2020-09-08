@@ -32,7 +32,8 @@ class DabaCnnAutoencoder(tf.keras.Model):
         self.up_d2 = Dense(self.inputshape[0]/4 * self.inputshape[1]/4 * 64, activation='relu')
         self.reshaper = Reshape((int(self.inputshape[0]/4) , int(self.inputshape[1]/4), 64))
         self.up_ct1 = Conv2DTranspose(64, (3, 3), strides=(2, 2), padding='same', activation='relu')
-        self.up_ct2 = Conv2DTranspose(1, (3, 3), strides=(2, 2), padding='same', activation='sigmoid')
+        # self.up_ct2 = Conv2DTranspose(1, (3, 3), strides=(2, 2), padding='same', activation='sigmoid')
+        self.up_ct2 = Conv2DTranspose(1, (3, 3), strides=(2, 2), padding='same', activation='tanh')
 
     def call(self, inputs, training=None, mask=None):
         return self.decode(self.encode(inputs, training), training)

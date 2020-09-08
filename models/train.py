@@ -23,17 +23,18 @@ class TfWriter(object):
         with self.writer.as_default():
             tf.summary.scalar("loss", loss.result(), step=step)
 
-    def reprortProgressMany(self, stuff:list, step):
+    def reprortProgressMany(self, stuff: list, step):
         with self.writer.as_default():
             for toReport in stuff:
                 tf.summary.scalar(toReport.name, toReport.result(), step=step)
 
-    def reprortProgressManyWithNameScope(self, stuff:dict, step: int):
+    def reprortProgressManyWithNameScope(self, stuff: dict, step: int):
         with self.writer.as_default():
             for nameScope, toReportMany in stuff.items():
                 with tf.name_scope(nameScope):
                     for toReport in toReportMany:
                         tf.summary.scalar(toReport.name, toReport.result(), step=step)
+
 
 def getDiscriminatorLoss():
     discriminator_research_loss_metric = tf.keras.metrics.Mean(name='discriminator_research_loss')
@@ -47,9 +48,11 @@ def getDiscriminatorLoss():
 
     return discriminator_research_loss, [discriminator_research_loss_metric]
 
+
 def getGeneratorLoss(lossObject):
     generatorVsDiscriminatorLosssReport = tf.keras.metrics.Mean(name='gen-vs-discriminator-train_loss')
     generatorReconstructionLosssReport = tf.keras.metrics.Mean(name='gen-reconstruction-train_loss')
+
     def generator_research_loss(fake_output, data, genOutput):
         reconstructionLoss = lossObject(data, genOutput)
         crossEntropyLoss = cross_entropy(tf.ones_like(fake_output), fake_output)
@@ -57,31 +60,30 @@ def getGeneratorLoss(lossObject):
         generatorVsDiscriminatorLosssReport(crossEntropyLoss)
         lambda1 = HParams.RECONSTRUCTION_LOSS_LAMBDA
         lambda2 = HParams.CROSS_ENTROPY_LOSS_LAMBDA
-        return lambda1*reconstructionLoss + lambda2*crossEntropyLoss
+        return lambda1 * reconstructionLoss + lambda2 * crossEntropyLoss
 
     return generator_research_loss, [generatorReconstructionLosssReport, generatorVsDiscriminatorLosssReport]
 
 
-def getTrainStep(model, discriminator, numOfWordsToDrop = 2):
-
-    #optimizers
+def getTrainStep(model, discriminator, numOfWordsToDrop=2):
+    # optimizers
     generator_optimizer = tf.keras.optimizers.Adam(1e-4)
     discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
-    #derivetive by
+    # derivetive by
     reconstructionLoss = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
     genTrainLoss, toReportGen = getGeneratorLoss(reconstructionLoss)
     discTrainLoss, toReportDisc = getDiscriminatorLoss()
 
-    #prob distributions
-    randomVecDistribution = tfp.distributions.Bernoulli(probs=tf.constant(0.5, shape = (HParams.BATCH_SIZE, HParams.OUTPUT_DIM)))
+    # prob distributions
+    randomVecDistribution = tfp.distributions.Bernoulli(
+        probs=tf.constant(0.5, shape=(HParams.BATCH_SIZE, HParams.OUTPUT_DIM)))
+
     @tf.function
     def train_step(data: tf.Tensor, noisedData: tf.Tensor):
         with tf.GradientTape(persistent=True) as gen_tape, tf.GradientTape() as disc_tape:
-
             encoded_data = model.encode(noisedData, training=True)
             genOutput = model.decode(encoded_data, training=True)
-            # tf.print(encoded_data)  # TODO
             randomVec = randomVecDistribution.sample()
             fake_vec_output = discriminator(encoded_data, training=True)
             real_vec_output = discriminator(randomVec, training=True)
@@ -89,14 +91,13 @@ def getTrainStep(model, discriminator, numOfWordsToDrop = 2):
             generator_loss = genTrainLoss(fake_vec_output, data, genOutput)
             discriminator_loss = discTrainLoss(real_vec_output, fake_vec_output)
 
-
         autoencoder_gradients = gen_tape.gradient(generator_loss, model.trainable_variables)
         discriminator_gradients = disc_tape.gradient(discriminator_loss, discriminator.trainable_variables)
 
         generator_optimizer.apply_gradients(zip(autoencoder_gradients, model.trainable_variables))
         discriminator_optimizer.apply_gradients(zip(discriminator_gradients, discriminator.trainable_variables))
 
-    return train_step, {"Gen": toReportGen, "Disc" :toReportDisc}
+    return train_step, {"Gen": toReportGen, "Disc": toReportDisc}
 
 
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
@@ -110,14 +111,8 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
     step = 0
     for epoch in tqdm(range(epochs_offset, epochs + epochs_offset), desc="train epochs"):
         for data, noisedData in zip(ds, noisedDs):
-        # for data, noisedData in tqdm(zip(ds, noisedDs), desc="epoc run", total = HParams.DATASET_SIZE):
             if epoch % save_result_per_epoch == 0:
                 pass
-                # plt.figure(step + 1)
-                # plt.imshow(data.numpy()[0].reshape(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractor().get_feature_dim()))
-                # plt.figure(step + 2)
-                # plt.imshow(noisedData.numpy()[0].reshape(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractor().get_feature_dim()))
-                # plt.show()
             train_step(data, noisedData)
             if step % progress_per_step == 0:
                 writer.reprortProgressManyWithNameScope(reportStuff, step)
@@ -140,12 +135,13 @@ def train_embedding_word2vec(numOfWordsToDrop=0):
     model.train((xmlParser.getSentsGenerator())(), total_examples=model.corpus_count, epochs=model.iter)
     model.save(os.path.join(HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}"))
 
-def train_embedding_word2vec_new():
+
+def train_embedding_word2vec_new(*args, **kwargs):
     from dataprocess.parser import XmlParser
     from gensim.models import Word2Vec
     xmlParser = XmlParser(HParams.filePath)
     vec_size = 200
-    model = Word2Vec(size=(vec_size), window=10, min_count=1, workers=4)
+    model = Word2Vec(*args, size=(vec_size), window=10, min_count=1, workers=4, **kwargs)
     model.build_vocab((xmlParser.getSentsGenerator())())
     model.train((xmlParser.getSentsGenerator())(), total_examples=model.corpus_count, epochs=model.iter)
     model.save(os.path.join(HParams.embeddingFilePath, f"word2v_embedding"))
@@ -154,13 +150,9 @@ def train_embedding_word2vec_new():
 def train_embedding_doc2vec(numOfWordsToDrop=0):
     from dataprocess.parser import XmlParser
     from gensim.models import Doc2Vec
-    xmlParser = XmlParser(HParams.filePath)  #TODO SET TO FULL DATA
+    xmlParser = XmlParser(HParams.filePath)  # TODO SET TO FULL DATA
     tmp = ord('z') - ord('a') + 7
     model = Doc2Vec(vector_size=(HParams.MAX_SENTENCE_DIM * tmp), min_count=2, epochs=40, negative=numOfWordsToDrop)
     model.build_vocab((xmlParser.getSentsGenerator(tagged=True))())
     model.train((xmlParser.getSentsGenerator(tagged=True))(), total_examples=model.corpus_count, epochs=model.iter)
     model.save(os.path.join(HParams.embeddingFilePath, f"doc2v_embedding_{numOfWordsToDrop}"))
-
-
-if __name__ == '__main__':
-    train_embedding_word2vec_new()

@@ -1,13 +1,17 @@
-from dataprocess.parser import XmlParser
+import numpy as np
+import os
 from hparams import HParams
+# HParams.filePath = os.path.join("data", "partial", "Posts.xml")
+HParams.DATASET_SIZE = 11
+
+from dataprocess.parser import XmlParser
+
 from index.hash_index import Index
 from index.index import MinHashIndex
 from models.api import getNNHashEncoder
 from train_and_test import encode, encode_batch
-import numpy as np
-import os
 from dataprocess.cleaners import cleanQuery
-import tensorflow as tf
+
 
 def train_partial(*args, **kwargs):
     import models.train
@@ -47,20 +51,22 @@ def saveYabaDabaIndex(saveIndexPath=None):
 
 
 def runSearch(index, searchQuery=None):
-    print('='*10)
+    print('=' * 10)
     print(searchQuery)
-    print('='*10)
+    print('=' * 10)
     wordsArr = cleanQuery(searchQuery)
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
     print(encodedVecs)  # TODO check why encodedVecs are the same for diff sentences
     return index.search(encodedVecs, top_k=10)
 
-def runSearches(searches:list):
+
+def runSearches(searches: list):
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=False)
     for search in searches:
-        runSearch(index,search)
+        runSearch(index, search)
+
 
 def main(**kwargs):
     """
@@ -69,7 +75,7 @@ def main(**kwargs):
     train_partial(**kwargs)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=False)
-    if index.size( ) != HParams.DATASET_SIZE:
+    if index.size() != HParams.DATASET_SIZE:
         print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
                                                                                        index.size()))
         index = saveYabaDabaIndex()
@@ -77,15 +83,18 @@ def main(**kwargs):
     # print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
     # print(index.size())
 
-def generate_w2v():
+
+def generate_w2v(*args, **kwargs):
     import models.train
-    models.train.train_embedding_word2vec_new()
+    models.train.train_embedding_word2vec_new(*args, **kwargs)
+
 
 if __name__ == '__main__':
+    HParams.filePath = os.path.join("data", "partial", "Posts.xml")
     # generate_w2v()
-    main(epochs=100, restore_last=False, progress_per_step=2)
+    main(epochs=10, restore_last=False, progress_per_step=2)
     runSearches([
         "What are the advantages of using SVN over CVS",
         "ASP.Net Custom Client-Side Validation",
-        "py pasjdasdj  aopsdk kdoas odkasldas dkasl; ;lsad;aldalkasdl;k asdasd asdas "
+        "regex to pull"
     ])

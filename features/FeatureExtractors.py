@@ -118,7 +118,8 @@ class FeatureExtractor_Temp(FeatureExtractor):
         if os.path.exists(self._path):
             self.model = Word2Vec.load(self._path)
         else:
-            raise Exception('call train_embedding_doc2vec from models/train.py')
+            pass
+            # raise Exception('call train_embedding_doc2vec from models/train.py')
 
     def get_feature_dim(self):
         return self.dim
