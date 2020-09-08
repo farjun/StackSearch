@@ -1,11 +1,8 @@
 import numpy as np
 import os
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from hparams import HParams
-# HParams.filePath = os.path.join("data", "partial", "Posts.xml")
-HParams.DATASET_SIZE = 11
-
 from dataprocess.parser import XmlParser
-
 from index.hash_index import Index
 from index.index import MinHashIndex
 from models.api import getNNHashEncoder
@@ -58,14 +55,17 @@ def runSearch(index, searchQuery=None):
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
     print(encodedVecs)  # TODO check why encodedVecs are the same for diff sentences
-    return index.search(encodedVecs, top_k=10)
+    # return index.search(encodedVecs, top_k=10)
+    return hasher.encode_batch_no_mask(wordsArr)
 
 
 def runSearches(searches: list):
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=False)
+    all_vecs = []
     for search in searches:
-        runSearch(index, search)
+        no_mask = runSearch(index, search)
+        all_vecs.append(no_mask)
 
 
 def main(**kwargs):
@@ -91,7 +91,7 @@ def generate_w2v(*args, **kwargs):
 
 if __name__ == '__main__':
     HParams.filePath = os.path.join("data", "partial", "Posts.xml")
-    # generate_w2v()
+    generate_w2v()
     main(epochs=10, restore_last=False, progress_per_step=2)
     runSearches([
         "What are the advantages of using SVN over CVS",

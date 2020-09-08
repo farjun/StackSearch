@@ -28,15 +28,19 @@ class NNHashEncoder(object):
         return encode
 
     def encode_batch(self, words: List[str]):
+        encode = self.encode_batch_no_mask(words)
+        mask = encode > 0.5
+        encode[mask] = 1
+        encode[np.logical_not(mask)] = 0
+        return encode.flatten()
+
+    def encode_batch_no_mask(self, words):
         feature = self.featureExtractor.get_feature_batch(words)
         feature = np.array(feature)
         feature = feature[tf.newaxis, ...]
         encode = self.model.encode(feature)
         encode = encode.numpy()
-        mask = encode > 0.5
-        encode[mask] = 1
-        encode[np.logical_not(mask)] = 0
-        return encode.flatten()
+        return encode
 
     def clean_and_encode_query(self, words: List[str]):
         return self.encode_batch(cleanQuery(words))
