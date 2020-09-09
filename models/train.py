@@ -58,7 +58,9 @@ def getGeneratorLoss(lossObject):
         crossEntropyLoss = cross_entropy(tf.ones_like(fake_output), fake_output)
         generatorReconstructionLosssReport(reconstructionLoss)
         generatorVsDiscriminatorLosssReport(crossEntropyLoss)
-        return reconstructionLoss + crossEntropyLoss
+        lambda1 = HParams.RECONSTRUCTION_LOSS_LAMBDA
+        lambda2 = HParams.CROSS_ENTROPY_LOSS_LAMBDA
+        return lambda1 * reconstructionLoss + lambda2 * crossEntropyLoss
 
     return generator_research_loss, [generatorReconstructionLosssReport, generatorVsDiscriminatorLosssReport]
 
@@ -130,6 +132,7 @@ def getTrainStepNotGan(model):
     return train_step, {"Gen": [reconstructionLosssReport, binaryLossReport, lossReport]}
 
 
+
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
                    save_result_per_epoch=5, restore_last=False, dataset_type: str = HParams.DATASET):
     ds = resolve_data_set(dataset_type)
@@ -168,6 +171,17 @@ def train_embedding_word2vec(numOfWordsToDrop=0):
     model.build_vocab((xmlParser.getSentsGenerator())())
     model.train((xmlParser.getSentsGenerator())(), total_examples=model.corpus_count, epochs=model.iter)
     model.save(os.path.join(HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}"))
+
+
+def train_embedding_word2vec_new(*args, **kwargs):
+    from dataprocess.parser import XmlParser
+    from gensim.models import Word2Vec
+    xmlParser = XmlParser(HParams.filePath)
+    vec_size = 200
+    model = Word2Vec(*args, size=(vec_size), window=10, min_count=1, workers=4, **kwargs)
+    model.build_vocab((xmlParser.getSentsGenerator())())
+    model.train((xmlParser.getSentsGenerator())(), total_examples=model.corpus_count, epochs=model.iter)
+    model.save(os.path.join(HParams.embeddingFilePath, f"word2v_embedding"))
 
 
 def train_embedding_doc2vec(numOfWordsToDrop=0):

@@ -12,7 +12,7 @@ from models.YabaDabaDiscriminator import DabaDiscriminator
 
 
 class NNHashEncoder(object):
-    def __init__(self, model, discriminator, featureExtractor, optimizer = tf.optimizers.Adam(), restore_last=False):
+    def __init__(self, model, discriminator, featureExtractor, optimizer=tf.optimizers.Adam(), restore_last=False):
         self.featureExtractor = featureExtractor
         self.optimizer = optimizer
         self.model = model
@@ -28,8 +28,14 @@ class NNHashEncoder(object):
         encode[np.logical_not(mask)] = 0
         return encode
 
-
     def encode_batch(self, words: List[str]):
+        encode = self.encode_batch_no_mask(words)
+        mask = encode > 0.5
+        encode[mask] = 1
+        encode[np.logical_not(mask)] = 0
+        return encode.flatten()
+
+    def encode_batch_no_mask(self, words):
         feature = self.featureExtractor.get_feature_batch(words)
         feature = np.array(feature)
         feature = feature[tf.newaxis, ...]
@@ -71,3 +77,4 @@ def getNNHashEncoder(restore_last=True,skip_discriminator=False):
     else:
         discriminator = None
     return NNHashEncoder(model, discriminator, featureExtractor, restore_last=restore_last)
+

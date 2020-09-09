@@ -21,7 +21,7 @@ class MinHashIndex(Index):
         self.minHashGeneratorPickleFilePath = os.path.join(indexPath, "min_hash_gen")
 
         self.configFilePath = os.path.join(indexPath, "config")
-        self.config = dict( indexSize = 0 )
+        self.config = dict(indexSize=0)
         if os.path.exists(self.indexPickleFilePath) and not overwrite:
             self.loadIndex()
         else:
@@ -31,10 +31,13 @@ class MinHashIndex(Index):
         self.minHashGenerator = WeightedMinHashGenerator(HParams.OUTPUT_DIM)
         self.hasher = MinHashLSHForest(num_perm=HParams.OUTPUT_DIM,
                                        l=1)  # performs the document hashing and results using Min Hash
+        os.makedirs(os.path.dirname(self.indexPickleFilePath), exist_ok=True)
         with open(self.indexPickleFilePath, 'wb') as f:
             f.write(b"")  # create file
+        os.makedirs(os.path.dirname(self.minHashGeneratorPickleFilePath), exist_ok=True)
         with open(self.minHashGeneratorPickleFilePath, "wb") as f:
             f.write(b"")  # create file
+        os.makedirs(os.path.dirname(self.configFilePath), exist_ok=True)
         with open(self.configFilePath, "w") as f:
             f.write("")  # create file
 
@@ -50,11 +53,11 @@ class MinHashIndex(Index):
                 print("Warning, Config was not able to load from an empty config file")
 
     def insert(self, postId, vec):
-        self.hasher.add(postId, WeightedMinHash(1 , vec))
+        self.hasher.add(postId, WeightedMinHash(1, vec))
         self.config['indexSize'] += 1
 
     def search(self, vec, top_k=2):
-        return self.hasher.query(WeightedMinHash(1 , vec), top_k)
+        return self.hasher.query(WeightedMinHash(1, vec), top_k)
 
     def index(self):
         self.hasher.index()

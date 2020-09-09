@@ -3,6 +3,8 @@ from os import path
 class HParams:
     DATASET = 'titles'
     DATASET_SIZE = 20 # takes first DATASET_SIZE posts out of the DATASET
+    CROSS_ENTROPY_LOSS_LAMBDA = 1
+    RECONSTRUCTION_LOSS_LAMBDA = 1
     filePath = path.join("data", "Posts.xml")
 
     embeddingFilePath = path.join("checkpoints", "word2vec")
@@ -24,3 +26,5 @@ class HParams:
     @staticmethod
     def getFeatureExtractorDim():
         return HParams.getFeatureExtractor().get_feature_dim()
+            W2VFeatureExtractor,FeatureExtractor_Temp
+        return FeatureExtractor_Temp(**kwargs)
