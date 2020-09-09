@@ -65,7 +65,7 @@ def getGeneratorLoss(lossObject):
     return generator_research_loss, [generatorReconstructionLosssReport, generatorVsDiscriminatorLosssReport]
 
 
-def getTrainStep(model, discriminator, numOfWordsToDrop=2):
+def getTrainStep(model, discriminator, noiseFunction=None):
     # optimizers
     generator_optimizer = tf.keras.optimizers.Adam(1e-4)
     discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
@@ -80,9 +80,9 @@ def getTrainStep(model, discriminator, numOfWordsToDrop=2):
         probs=tf.constant(0.5, shape=(HParams.BATCH_SIZE, HParams.OUTPUT_DIM)))
 
     @tf.function
-    def train_step(data: tf.Tensor, noisedData: tf.Tensor):
+    def train_step(data: tf.Tensor):
         with tf.GradientTape(persistent=True) as gen_tape, tf.GradientTape() as disc_tape:
-            encoded_data = model.encode(noisedData, training=True)
+            encoded_data = model.encode(data, training=True)
             genOutput = model.decode(encoded_data, training=True)
             randomVec = randomVecDistribution.sample()
             fake_vec_output = discriminator(encoded_data, training=True)
@@ -100,20 +100,56 @@ def getTrainStep(model, discriminator, numOfWordsToDrop=2):
     return train_step, {"Gen": toReportGen, "Disc": toReportDisc}
 
 
+def getTrainStepNotGan(model):
+    # optimizers
+    optimizer = tf.keras.optimizers.Adam(1e-4)
+
+    # derivetive by
+    reconstructionLossObject = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
+    binaryLossObject = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
+
+    reconstructionLosssReport = tf.keras.metrics.Mean(name='reconstruction-train_loss')
+    binaryLossReport = tf.keras.metrics.Mean(name='binary-train_loss')
+    lossReport = tf.keras.metrics.Mean(name='total-train_loss')
+
+    @tf.function
+    def train_step(data: tf.Tensor, ):
+        with tf.GradientTape(persistent=True) as gen_tape:
+            encoded_data = model.encode(data, training=True)
+            genOutput = model.decode(encoded_data, training=True)
+
+            reconstructionLoss = reconstructionLossObject(genOutput, data)
+            binaryLoss = binaryLossObject(encoded_data, tf.constant(0.5, shape=encoded_data.shape))
+            reconstructionLosssReport(reconstructionLoss)
+            binaryLossReport(binaryLoss)
+            loss = 10*reconstructionLoss + (-binaryLoss)
+            lossReport(loss)
+
+        autoencoder_gradients = gen_tape.gradient(loss, model.trainable_variables)
+
+        optimizer.apply_gradients(zip(autoencoder_gradients, model.trainable_variables))
+
+    return train_step, {"Gen": [reconstructionLosssReport, binaryLossReport, lossReport]}
+
+
+
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
-                   save_result_per_epoch=5, restore_last=False, dataset_type: str = 'partial_titles'):
-    ds = resolve_data_set(dataset_type, featureExtractor=HParams.getFeatureExtractor())
-    noisedDs = resolve_data_set(dataset_type, featureExtractor=HParams.getFeatureExtractor(numOfWordsToDrop=2))
-    nnHashEncoder = getNNHashEncoder(restore_last)
-    train_step, reportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
+                   save_result_per_epoch=5, restore_last=False, dataset_type: str = HParams.DATASET):
+    ds = resolve_data_set(dataset_type)
+    nnHashEncoder = getNNHashEncoder(restore_last, skip_discriminator=True)
+    # train_step, reportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
+    train_step, reportStuff = getTrainStepNotGan(nnHashEncoder.model)
     writer = TfWriter()
 
     step = 0
     for epoch in tqdm(range(epochs_offset, epochs + epochs_offset), desc="train epochs"):
-        for data, noisedData in zip(ds, noisedDs):
-            if epoch % save_result_per_epoch == 0:
-                pass
-            train_step(data, noisedData)
+        for data in ds:
+            if step == 0: # sample one image from feature space
+                plt.figure(1)
+                plt.imshow(
+                    data.numpy()[0].reshape(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractor().get_feature_dim()))
+                plt.show()
+            train_step(data)
             if step % progress_per_step == 0:
                 writer.reprortProgressManyWithNameScope(reportStuff, step)
 
@@ -123,6 +159,7 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
         for toReportMany in reportStuff.values():
             for toReport in toReportMany:
                 toReport.reset_states()
+
 
 def train_embedding_word2vec(numOfWordsToDrop=0):
     from dataprocess.parser import XmlParser

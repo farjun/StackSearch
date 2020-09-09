@@ -6,6 +6,12 @@ from dataprocess.parser import XmlParser
 from index.hash_index import Index
 from index.index import MinHashIndex
 from models.api import getNNHashEncoder
+import numpy as np
+import os
+from dataprocess.cleaners import cleanQuery
+import tensorflow as tf
+import models.train
+
 from train_and_test import encode, encode_batch
 from dataprocess.cleaners import cleanQuery
 
@@ -32,7 +38,6 @@ def saveIndex():
     index.save()
     return index
 
-
 def saveYabaDabaIndex(saveIndexPath=None):
     xmlParser = XmlParser(HParams.filePath)
     indexPath = saveIndexPath or os.path.join(os.path.dirname(HParams.filePath), "index")
@@ -46,7 +51,6 @@ def saveYabaDabaIndex(saveIndexPath=None):
     index.save()
     return index
 
-
 def runSearch(index, searchQuery=None):
     print('=' * 10)
     print(searchQuery)
@@ -54,7 +58,9 @@ def runSearch(index, searchQuery=None):
     wordsArr = cleanQuery(searchQuery)
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
-    print(encodedVecs)  # TODO check why encodedVecs are the same for diff sentences
+    print(encodedVecs)
+    return index.search(encodedVecs, top_k=10)
+    print(encodedVecs) 
     # return index.search(encodedVecs, top_k=10)
     return hasher.encode_batch_no_mask(wordsArr)
 
@@ -67,21 +73,22 @@ def runSearches(searches: list):
         no_mask = runSearch(index, search)
         all_vecs.append(no_mask)
 
-
 def main(**kwargs):
     """
     :param kwargs: args which will be passed to train_partial -> train_yabadaba
     """
-    train_partial(**kwargs)
+    models.train.train_yabadaba(**kwargs)
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=False)
-    if index.size() != HParams.DATASET_SIZE:
+    if True or index.size() != HParams.DATASET_SIZE:
         print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
                                                                                        index.size()))
         index = saveYabaDabaIndex()
-    # print(runSearch(index, "What are the advantages of using SVN over CVS"))
-    # print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
-    # print(index.size())
+        print("index size: ".format(index.size()))
+
+def clear_summary():
+    import shutil
+    shutil.rmtree(os.path.join("summary","train"),ignore_errors=True)
 
 
 def generate_w2v(*args, **kwargs):
@@ -90,11 +97,16 @@ def generate_w2v(*args, **kwargs):
 
 
 if __name__ == '__main__':
-    HParams.filePath = os.path.join("data", "partial", "Posts.xml")
-    generate_w2v()
-    main(epochs=10, restore_last=False, progress_per_step=2)
-    runSearches([
-        "What are the advantages of using SVN over CVS",
-        "ASP.Net Custom Client-Side Validation",
-        "regex to pull"
-    ])
+    main(epochs=100, restore_last=False, progress_per_step=2)
+    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    index = MinHashIndex(indexPath, overwrite=False)
+    print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string"))
+    print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
+#     HParams.filePath = os.path.join("data", "partial", "Posts.xml")
+#     generate_w2v()
+#     main(epochs=10, restore_last=False, progress_per_step=2)
+#     runSearches([
+#         "What are the advantages of using SVN over CVS",
+#         "ASP.Net Custom Client-Side Validation",
+#         "regex to pull"
+#     ])
