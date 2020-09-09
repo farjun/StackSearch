@@ -4,6 +4,9 @@ from datasketch import WeightedMinHashGenerator, MinHashLSHForest, WeightedMinHa
 from hparams import HParams
 import json
 
+from index.utils import createDirIfNotExists
+
+
 class Index(object):
     def __init__(self, indexPath):
         self.indexPath = indexPath
@@ -13,8 +16,10 @@ class MinHashIndex(Index):
 
     def __init__(self, indexPath, overwrite=False):
         super().__init__(indexPath)
+        createDirIfNotExists(indexPath)
         self.indexPickleFilePath = os.path.join(indexPath, "main_index")
         self.minHashGeneratorPickleFilePath = os.path.join(indexPath, "min_hash_gen")
+
         self.configFilePath = os.path.join(indexPath, "config")
         self.config = dict( indexSize = 0 )
         if os.path.exists(self.indexPickleFilePath) and not overwrite:

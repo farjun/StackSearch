@@ -7,6 +7,7 @@ import tensorflow as tf
 from dataprocess.cleaners import cleanQuery
 from hparams import HParams
 from models.DabaCnnAutoencoder import DabaCnnAutoencoder
+from models.SimpleCnnAutoencoder import SimpleCnnAutoencoder
 from models.YabaDabaDiscriminator import DabaDiscriminator
 
 
@@ -22,7 +23,7 @@ class NNHashEncoder(object):
         feature = np.expand_dims(np.array(self.featureExtractor.get_feature(word)), 0)
         encode = self.model.encode(feature)[0]
         encode = encode.numpy()
-        mask = encode > 0
+        mask = encode > 0.5
         encode[mask] = 1
         encode[np.logical_not(mask)] = 0
         return encode
@@ -34,7 +35,7 @@ class NNHashEncoder(object):
         feature = feature[tf.newaxis, ...]
         encode = self.model.encode(feature)
         encode = encode.numpy()
-        mask = encode > 0
+        mask = encode > 0.5
         encode[mask] = 1
         encode[np.logical_not(mask)] = 0
         return encode.flatten()
@@ -61,8 +62,12 @@ class NNHashEncoder(object):
         self.ckpt_manager.save()
 
 
-def getNNHashEncoder(restore_last=True):
+def getNNHashEncoder(restore_last=True,skip_discriminator=False):
     featureExtractor = HParams.getFeatureExtractor()
-    model = DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
-    discriminator = DabaDiscriminator()
+    # model = DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
+    model = SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
+    if not skip_discriminator:
+        discriminator = DabaDiscriminator()
+    else:
+        discriminator = None
     return NNHashEncoder(model, discriminator, featureExtractor, restore_last=restore_last)

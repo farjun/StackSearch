@@ -46,7 +46,7 @@ def get_partial_data_set(featureExtractor: FeatureExtractor):
         .prefetch(tf.data.experimental.AUTOTUNE)
     return ds
 
-def get_partial_data_set_titles(featureExtractor: FeatureExtractor):
+def get_data_set_titles(featureExtractor: FeatureExtractor):
     xmlParser = XmlParser(HParams.filePath)
     ds = tf.data.Dataset.from_generator(xmlParser.getTitleGenerator(featureExtractor=featureExtractor), (tf.float32), output_shapes=(HParams.MAX_SENTENCE_DIM, featureExtractor.get_feature_dim(),1))
     ds = ds \
@@ -58,16 +58,16 @@ def get_partial_data_set_titles(featureExtractor: FeatureExtractor):
 
 
 
-def resolve_data_set(dataset_type: str, featureExtractor=HParams.getFeatureExtractor()):
+def resolve_data_set(dataset_type: str, noise = None):
     default = "example"
     types = {
         default: get_data_set_example,
         "partial": get_partial_data_set,
-        "partial_titles": get_partial_data_set_titles
+        "titles": get_data_set_titles
     }
     if dataset_type is None:
         dataset_type = default
     if dataset_type not in types:
         print(f"dataset_type:{dataset_type} not in supported keys: {types.keys()}")
         raise NotImplementedError
-    return types[dataset_type](featureExtractor)
+    return types[dataset_type](HParams.getFeatureExtractor())

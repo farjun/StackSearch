@@ -82,10 +82,10 @@ class W2VFeatureExtractor(FeatureExtractor):
         if os.path.exists(self._path):
             self.model = Word2Vec.load(self._path)
         else:
-            raise Exception('call train_embedding_word2vec from models/train.py')
+            pass
 
     def get_feature_dim(self):
-        return ord('z') - ord('a') + 7
+        return 32
 
     def get_feature(self, word: str):
         missing_word_case = np.array([0.0001] * self.dim)
@@ -102,7 +102,7 @@ class W2VFeatureExtractor(FeatureExtractor):
             sum_vec += word_vec
         result = sum_vec / len(words)
         result.resize((maxSentenceDim, self.get_feature_dim(), 1))
-        return result
+        return np.interp(result, (result.min(), result.max()), (-1, +1))
 
 
 class D2VFeatureExtractor(FeatureExtractor):
