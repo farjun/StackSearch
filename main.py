@@ -12,31 +12,12 @@ from dataprocess.cleaners import cleanQuery
 import tensorflow as tf
 import models.train
 
-from train_and_test import encode, encode_batch
 from dataprocess.cleaners import cleanQuery
 
 
 def train_partial(*args, **kwargs):
     import models.train
     models.train.train_yabadaba(*args, **kwargs, dataset_type="partial_titles")
-
-
-def train_example(*args, **kwargs):
-    import train_and_test
-    train_and_test.train(*args, **kwargs, dataset_type="example")
-
-
-def saveIndex():
-    xmlParser = XmlParser(HParams.filePath)
-    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    index = MinHashIndex(indexPath, overwrite=True)
-    for post in xmlParser:
-        wordsArr = post.toWordsArray()
-        encodedVecs = encode_batch(wordsArr)
-        postSimHash = np.around(np.average(encodedVecs, axis=0))
-        index.insert(post.id, postSimHash)
-    index.save()
-    return index
 
 def saveYabaDabaIndex(saveIndexPath=None):
     xmlParser = XmlParser(HParams.filePath)

@@ -26,5 +26,3 @@ class HParams:
     @staticmethod
     def getFeatureExtractorDim():
         return HParams.getFeatureExtractor().get_feature_dim()
-            W2VFeatureExtractor,FeatureExtractor_Temp
-        return FeatureExtractor_Temp(**kwargs)
