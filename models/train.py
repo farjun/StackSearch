@@ -100,6 +100,7 @@ def getTrainStep(model, discriminator, noiseFunction=None):
     return train_step, {"Gen": toReportGen, "Disc": toReportDisc}
 
 
+
 def getTrainStepNotGan(model):
     # optimizers
     optimizer = tf.keras.optimizers.Adam(1e-4)
@@ -117,12 +118,11 @@ def getTrainStepNotGan(model):
         with tf.GradientTape(persistent=True) as gen_tape:
             encoded_data = model.encode(data, training=True)
             genOutput = model.decode(encoded_data, training=True)
-
             reconstructionLoss = reconstructionLossObject(genOutput, data)
-            binaryLoss = binaryLossObject(encoded_data, tf.constant(0.5, shape=encoded_data.shape))
+            #binaryLoss = binaryLossObject(interpulatedVec, tf.constant(0.5, shape=interpulatedVec.shape))
             reconstructionLosssReport(reconstructionLoss)
-            binaryLossReport(binaryLoss)
-            loss = 10*reconstructionLoss + (-binaryLoss)
+            #binaryLossReport(binaryLoss)
+            loss = reconstructionLoss
             lossReport(loss)
 
         autoencoder_gradients = gen_tape.gradient(loss, model.trainable_variables)

@@ -4,7 +4,8 @@ from dataprocess.models import Post
 from nltk.corpus import brown
 from gensim.models import Word2Vec, Doc2Vec
 import os
-
+from hparams import HParams
+from os import path
 import hparams
 import tensorflow as tf
 
@@ -80,6 +81,7 @@ class W2VFeatureExtractor(FeatureExtractor):
         self.dim = dim or (hparams.HParams.MAX_SENTENCE_DIM * self.get_feature_dim())
         self.model = None
         self._path = os.path.join(hparams.HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}")
+        self.config = dict(minval = 0, maxval =0)
         if os.path.exists(self._path):
             self.model = Word2Vec.load(self._path)
         else:
@@ -94,6 +96,15 @@ class W2VFeatureExtractor(FeatureExtractor):
         missing_word_case = np.array([0.0001] * self.dim)
         return missing_word_case
 
+    def _updateminmax(self, result):
+        if self.config[ 'minval' ] > result.min():
+            self.config['minval'] = result.min()
+            print(self.config)
+
+        if self.config[ 'maxval' ] < result.max():
+            self.config['maxval'] = result.max()
+            print(self.config)
+
     def get_feature_batch(self, words: List[str], maxSentenceDim=hparams.HParams.MAX_SENTENCE_DIM) -> np.ndarray:
         if len(words) == 0:
             return np.zeros(self.dim, dtype=np.float32)
@@ -101,10 +112,11 @@ class W2VFeatureExtractor(FeatureExtractor):
         for word in words:
             word_vec = self.get_feature(word)
             sum_vec += word_vec
-        result = sum_vec / len(words)
-        result.resize((maxSentenceDim, self.get_feature_dim(), 1))
-        return np.interp(result, (result.min(), result.max()), (-1, +1))
 
+        result = sum_vec / len(words)
+        #self._updateminmax(result)
+        result.resize((maxSentenceDim, self.get_feature_dim(), 1))
+        return np.interp(result, (result.min(), result.max()), ( -1,  1)) # ( -0.00048781678,  0.00048719026)
 
 class FeatureExtractor_Temp(FeatureExtractor):
     # TODO this is a temp class which immitate D2V with W2V

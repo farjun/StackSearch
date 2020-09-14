@@ -1,31 +1,28 @@
-import numpy as np
-import os
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-from hparams import HParams
+import os
+import tqdm
+import models.train
+from dataprocess.cleaners import cleanQuery
 from dataprocess.parser import XmlParser
-from index.hash_index import Index
+from hparams import HParams
 from index.index import MinHashIndex
 from models.api import getNNHashEncoder
-import numpy as np
-import os
-from dataprocess.cleaners import cleanQuery
-import tensorflow as tf
-import models.train
-
-from dataprocess.cleaners import cleanQuery
 
 
 def train_partial(*args, **kwargs):
     import models.train
     models.train.train_yabadaba(*args, **kwargs, dataset_type="partial_titles")
 
+
 def saveYabaDabaIndex(saveIndexPath=None):
     xmlParser = XmlParser(HParams.filePath)
     indexPath = saveIndexPath or os.path.join(os.path.dirname(HParams.filePath), "index")
     index = MinHashIndex(indexPath, overwrite=True)
     hasher = getNNHashEncoder()
-    for post in xmlParser:
+    for post in tqdm.tqdm(xmlParser):
         wordsArr = post.toWordsArray()
+        if len(wordsArr) == 0:
+            continue
         encodedVecs = hasher.encode_batch(wordsArr)
         index.insert(post.id, encodedVecs)
     index.index()
@@ -41,9 +38,6 @@ def runSearch(index, searchQuery=None):
     encodedVecs = hasher.encode_batch(wordsArr)
     print(encodedVecs)
     return index.search(encodedVecs, top_k=10)
-    print(encodedVecs) 
-    # return index.search(encodedVecs, top_k=10)
-    return hasher.encode_batch_no_mask(wordsArr)
 
 
 def runSearches(searches: list):
@@ -59,13 +53,7 @@ def main(**kwargs):
     :param kwargs: args which will be passed to train_partial -> train_yabadaba
     """
     models.train.train_yabadaba(**kwargs)
-    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    index = MinHashIndex(indexPath, overwrite=False)
-    if True or index.size() != HParams.DATASET_SIZE:
-        print("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE,
-                                                                                       index.size()))
-        index = saveYabaDabaIndex()
-        print("index size: ".format(index.size()))
+
 
 def clear_summary():
     import shutil
@@ -78,13 +66,15 @@ def generate_w2v(*args, **kwargs):
 
 
 if __name__ == '__main__':
-    main(epochs=100, restore_last=False, progress_per_step=2)
-    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    index = MinHashIndex(indexPath, overwrite=False)
-    print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string"))
-    print(runSearch(index, "ASP.Net Custom Client-Side Validation"))
-#     HParams.filePath = os.path.join("data", "partial", "Posts.xml")
-#     generate_w2v()
+    # generate_w2v()
+    #main(epochs=10, restore_last=False, progress_per_step=2)
+    # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    index = saveYabaDabaIndex()
+    print("index size: ".format(index.size()))
+
+    print(runSearch(index, "Determine a user's timezone")) # should be 13
+    print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string")) # should be 1237
+    print(runSearch(index, "ASP.Net Custom Client-Side Validation")) # should be 1401
 #     main(epochs=10, restore_last=False, progress_per_step=2)
 #     runSearches([
 #         "What are the advantages of using SVN over CVS",

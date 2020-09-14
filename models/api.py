@@ -6,10 +6,23 @@ import tensorflow as tf
 # from tqdm.auto import tqdm # Uncomment for Colab-Notebook
 from dataprocess.cleaners import cleanQuery
 from hparams import HParams
-from models.DabaCnnAutoencoder import DabaCnnAutoencoder
 from models.SimpleCnnAutoencoder import SimpleCnnAutoencoder
 from models.YabaDabaDiscriminator import DabaDiscriminator
+from models.utils import dec2bin
 
+
+def toBinaryRepresentation(arr):
+    res = []
+    for num in arr:
+        res += dec2bin(num)
+    return np.asarray(res)
+
+
+def toBinaryThreshold(arr, threshold = 0.5):
+    mask = arr > threshold
+    arr[mask] = 1
+    arr[np.logical_not(mask)] = 0
+    return arr.flatten()
 
 class NNHashEncoder(object):
     def __init__(self, model, discriminator, featureExtractor, optimizer=tf.optimizers.Adam(), restore_last=False):
@@ -19,21 +32,9 @@ class NNHashEncoder(object):
         self.discriminator = discriminator
         self.ckpt_manager = self.load(restore_last)
 
-    def encode(self, word: str):
-        feature = np.expand_dims(np.array(self.featureExtractor.get_feature(word)), 0)
-        encode = self.model.encode(feature)[0]
-        encode = encode.numpy()
-        mask = encode > 0.5
-        encode[mask] = 1
-        encode[np.logical_not(mask)] = 0
-        return encode
-
     def encode_batch(self, words: List[str]):
         encode = self.encode_batch_no_mask(words)
-        mask = encode > 0.5
-        encode[mask] = 1
-        encode[np.logical_not(mask)] = 0
-        return encode.flatten()
+        return toBinaryRepresentation(encode)
 
     def encode_batch_no_mask(self, words):
         feature = self.featureExtractor.get_feature_batch(words)
@@ -41,9 +42,6 @@ class NNHashEncoder(object):
         feature = feature[tf.newaxis, ...]
         encode = self.model.encode(feature)
         encode = encode.numpy()
-        mask = encode > 0.5
-        encode[mask] = 1
-        encode[np.logical_not(mask)] = 0
         return encode.flatten()
 
     def clean_and_encode_query(self, words: List[str]):
