@@ -6,7 +6,7 @@ from hparams import HParams
 
 
 class SimpleCnnAutoencoder(tf.keras.Model):
-    def __init__(self, featureDim, latent_space_dim, useNormalization = True, *args, **kwargs):
+    def __init__(self, featureDim, latent_space_dim, useNormalization = False, *args, **kwargs):
         self.useNormalization = useNormalization
         assert featureDim % 4 == 0
         assert HParams.MAX_SENTENCE_DIM % 4 == 0
@@ -40,7 +40,7 @@ class SimpleCnnAutoencoder(tf.keras.Model):
         return self.decode(self.encode(inputs, training), training)
 
     def encode(self, inputs, training=False):
-        x = self.batchNormalization0(inputs)
+        x = self.batchNormalization0(inputs) if self.useNormalization else inputs
         x = self.down_c1(x, training = training)
         x = self.batchNormalization1(x, training = training) if self.useNormalization else x
         x = self.down_c2(x, training = training)

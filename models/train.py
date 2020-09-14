@@ -119,9 +119,9 @@ def getTrainStepNotGan(model):
             encoded_data = model.encode(data, training=True)
             genOutput = model.decode(encoded_data, training=True)
             reconstructionLoss = reconstructionLossObject(genOutput, data)
-            #binaryLoss = binaryLossObject(interpulatedVec, tf.constant(0.5, shape=interpulatedVec.shape))
+            binaryLoss = binaryLossObject(encoded_data, tf.constant(0.5, shape=encoded_data.shape))
             reconstructionLosssReport(reconstructionLoss)
-            #binaryLossReport(binaryLoss)
+            binaryLossReport(binaryLoss)
             loss = reconstructionLoss
             lossReport(loss)
 

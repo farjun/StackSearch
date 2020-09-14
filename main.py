@@ -67,7 +67,7 @@ def generate_w2v(*args, **kwargs):
 
 if __name__ == '__main__':
     # generate_w2v()
-    #main(epochs=10, restore_last=False, progress_per_step=2)
+    # main(epochs=100, restore_last=False, progress_per_step=2)
     # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = saveYabaDabaIndex()
     print("index size: ".format(index.size()))

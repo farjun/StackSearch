@@ -116,7 +116,7 @@ class W2VFeatureExtractor(FeatureExtractor):
         result = sum_vec / len(words)
         #self._updateminmax(result)
         result.resize((maxSentenceDim, self.get_feature_dim(), 1))
-        return np.interp(result, (result.min(), result.max()), ( -1,  1)) # ( -0.00048781678,  0.00048719026)
+        return np.interp(result, (result.min(), result.max()),  ( -0.00048781678,  0.00048719026))
 
 class FeatureExtractor_Temp(FeatureExtractor):
     # TODO this is a temp class which immitate D2V with W2V
@@ -150,7 +150,10 @@ class FeatureExtractor_Temp(FeatureExtractor):
         if self.numOfWordsToDrop > 0:
             indexes = np.random.choice(maxSentenceDim, size=self.numOfWordsToDrop, replace=False)
             out[indexes] = 0
-        return out[..., np.newaxis]
+        result = out[..., np.newaxis]
+        result = np.interp(result, (result.min(), result.max()), (-0.00048781678, 0.00048719026))
+
+        return result
 
 
 class D2VFeatureExtractor(FeatureExtractor):
