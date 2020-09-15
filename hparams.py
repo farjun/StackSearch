@@ -11,7 +11,7 @@ class HParams:
     BATCH_SIZE = 4
     OUTPUT_DIM = 4
     CKPT_MAX_TO_KEEP = 2
-    MAX_SENTENCE_DIM = 8
+    MAX_SENTENCE_DIM = 16
 
 
     def getCeckpointPath(self):
