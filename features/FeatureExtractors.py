@@ -81,7 +81,7 @@ class W2VFeatureExtractor(FeatureExtractor):
         self.dim = dim or (hparams.HParams.MAX_SENTENCE_DIM * self.get_feature_dim())
         self.model = None
         self._path = os.path.join(hparams.HParams.embeddingFilePath, f"word2v_embedding_{numOfWordsToDrop}")
-        self.config = dict(minval = 0, maxval =0)
+        self.config = dict(minval=0, maxval=0)
         if os.path.exists(self._path):
             self.model = Word2Vec.load(self._path)
         else:
@@ -97,11 +97,11 @@ class W2VFeatureExtractor(FeatureExtractor):
         return missing_word_case
 
     def _updateminmax(self, result):
-        if self.config[ 'minval' ] > result.min():
+        if self.config['minval'] > result.min():
             self.config['minval'] = result.min()
             print(self.config)
 
-        if self.config[ 'maxval' ] < result.max():
+        if self.config['maxval'] < result.max():
             self.config['maxval'] = result.max()
             print(self.config)
 
@@ -114,9 +114,10 @@ class W2VFeatureExtractor(FeatureExtractor):
             sum_vec += word_vec
 
         result = sum_vec / len(words)
-        #self._updateminmax(result)
+        # self._updateminmax(result)
         result.resize((maxSentenceDim, self.get_feature_dim(), 1))
-        return np.interp(result, (result.min(), result.max()),  ( -0.00048781678,  0.00048719026))
+        return np.interp(result, (result.min(), result.max()), (-0.00048781678, 0.00048719026))
+
 
 class FeatureExtractor_Temp(FeatureExtractor):
     # TODO this is a temp class which immitate D2V with W2V
@@ -148,6 +149,7 @@ class FeatureExtractor_Temp(FeatureExtractor):
         for i in range(min(len(words), maxSentenceDim)):
             out[i] = self.get_feature(words[i])
         if self.numOfWordsToDrop > 0:
+            print(self.numOfWordsToDrop)
             indexes = np.random.choice(maxSentenceDim, size=self.numOfWordsToDrop, replace=False)
             out[indexes] = 0
         result = out[..., np.newaxis]
