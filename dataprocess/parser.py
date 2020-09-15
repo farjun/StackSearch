@@ -44,7 +44,6 @@ class XmlParser(object):
 
     def getTitleGenerator(self, featureExtractor : FeatureExtractor = None):
         def gen():
-            print("Start gen()")
             postsIter = iter(self)
             for post in postsIter:
                 res = post.toWordsArray()
