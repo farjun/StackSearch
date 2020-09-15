@@ -82,7 +82,7 @@ def temp_f(featureExtractor: FeatureExtractor, amount_to_drop):
     output_shapes = (HParams.MAX_SENTENCE_DIM, featureExtractor.get_feature_dim(), 1)
     ds = tf.data.Dataset.from_generator(xmlParser.getTitleGenerator(featureExtractor=featureExtractor), (tf.float32),
                                         output_shapes=output_shapes)
-    ds = ds.cache()
+    # ds = ds.cache()
     ds = ds.shuffle(100)
     ds = ds.batch(HParams.BATCH_SIZE)  # Efficient
     if amount_to_drop > 0:
