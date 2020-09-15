@@ -27,7 +27,7 @@ def example_get_data_generator(featureExtractor: FeatureExtractor):
     return to_generator
 
 
-def get_data_set_example(featureExtractor: FeatureExtractor):
+def get_data_set_example(featureExtractor: FeatureExtractor,amount_to_drop):
     ds = tf.data.Dataset.from_generator(example_get_data_generator(featureExtractor), (tf.int32))
     ds = ds \
         .cache() \
@@ -37,7 +37,7 @@ def get_data_set_example(featureExtractor: FeatureExtractor):
     return ds
 
 
-def get_partial_data_set(featureExtractor: FeatureExtractor):
+def get_partial_data_set(featureExtractor: FeatureExtractor,amount_to_drop):
     xmlParser = XmlParser(HParams.filePath)
     ds = tf.data.Dataset.from_generator(xmlParser.getWordsGenerator(featureExtractor=featureExtractor), (tf.int32))
     ds = ds \
@@ -48,7 +48,7 @@ def get_partial_data_set(featureExtractor: FeatureExtractor):
     return ds
 
 
-def get_data_set_titles(featureExtractor: FeatureExtractor):
+def get_data_set_titles(featureExtractor: FeatureExtractor,amount_to_drop):
     xmlParser = XmlParser(HParams.filePath)
     ds = tf.data.Dataset.from_generator(xmlParser.getTitleGenerator(featureExtractor=featureExtractor), (tf.float32),
                                         output_shapes=(HParams.MAX_SENTENCE_DIM, featureExtractor.get_feature_dim(), 1))
@@ -91,19 +91,19 @@ def temp_f(featureExtractor: FeatureExtractor, amount_to_drop):
     return ds
 
 
-def resolve_data_set(dataset_type: str, noise=None):
+def resolve_data_set(dataset_type: str, amount_to_drop=0):
     default = "example"
     types = {
         default: get_data_set_example,
         "partial": get_partial_data_set,
-        "titles": get_data_set_titles
+        "titles": temp_f
     }
     if dataset_type is None:
         dataset_type = default
     if dataset_type not in types:
         print(f"dataset_type:{dataset_type} not in supported keys: {types.keys()}")
         raise NotImplementedError
-    return types[dataset_type](HParams.getFeatureExtractor())
+    return types[dataset_type](HParams.getFeatureExtractor(),amount_to_drop)
 
 
 if __name__ == '__main__':

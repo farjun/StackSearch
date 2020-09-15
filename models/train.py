@@ -100,7 +100,6 @@ def getTrainStep(model, discriminator, noiseFunction=None):
     return train_step, {"Gen": toReportGen, "Disc": toReportDisc}
 
 
-
 def getTrainStepNotGan(model):
     # optimizers
     optimizer = tf.keras.optimizers.Adam(1e-4)
@@ -114,11 +113,11 @@ def getTrainStepNotGan(model):
     lossReport = tf.keras.metrics.Mean(name='total-train_loss')
 
     @tf.function
-    def train_step(data: tf.Tensor, ):
+    def train_step(data_noised,data_target ):
         with tf.GradientTape(persistent=True) as gen_tape:
-            encoded_data = model.encode(data, training=True)
+            encoded_data = model.encode(data_noised, training=True)
             genOutput = model.decode(encoded_data, training=True)
-            reconstructionLoss = reconstructionLossObject(genOutput, data)
+            reconstructionLoss = reconstructionLossObject(genOutput, data_target)
             binaryLoss = binaryLossObject(encoded_data, tf.constant(0.5, shape=encoded_data.shape))
             reconstructionLosssReport(reconstructionLoss)
             binaryLossReport(binaryLoss)
@@ -132,10 +131,10 @@ def getTrainStepNotGan(model):
     return train_step, {"Gen": [reconstructionLosssReport, binaryLossReport, lossReport]}
 
 
-
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
                    save_result_per_epoch=5, restore_last=False, dataset_type: str = HParams.DATASET):
-    ds = resolve_data_set(dataset_type)
+    ds_noised = resolve_data_set(dataset_type, amount_to_drop=2)
+    ds_target = resolve_data_set(dataset_type, amount_to_drop=0)
     nnHashEncoder = getNNHashEncoder(restore_last, skip_discriminator=True)
     # train_step, reportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
     train_step, reportStuff = getTrainStepNotGan(nnHashEncoder.model)
@@ -143,14 +142,14 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
 
     step = 0
     for epoch in tqdm(range(epochs_offset, epochs + epochs_offset), desc="train epochs"):
-        for data in ds:
-            if step == 0: # sample one image from feature space
+        for data_noised,data_target in tf.data.Dataset.zip((ds_noised, ds_target)):
+            if step == 0:  # sample one image from feature space
                 pass
                 # plt.figure(1)
                 # plt.imshow(
                 #     data.numpy()[0].reshape(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractor().get_feature_dim()))
                 # plt.show()
-            train_step(data)
+            train_step(data_noised,data_target)
             if step % progress_per_step == 0:
                 writer.reprortProgressManyWithNameScope(reportStuff, step)
 

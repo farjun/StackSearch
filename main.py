@@ -67,7 +67,7 @@ def generate_w2v(*args, **kwargs):
 
 if __name__ == '__main__':
     # generate_w2v()
-    # main(epochs=100, restore_last=False, progress_per_step=2)
+    main(epochs=100, restore_last=False, progress_per_step=2)
     # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     index = saveYabaDabaIndex()
     print("index size: ".format(index.size()))
@@ -75,7 +75,6 @@ if __name__ == '__main__':
     print(runSearch(index, "Determine a user's timezone")) # should be 13
     print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string")) # should be 1237
     print(runSearch(index, "ASP.Net Custom Client-Side Validation")) # should be 1401
-#     main(epochs=10, restore_last=False, progress_per_step=2)
 #     runSearches([
 #         "What are the advantages of using SVN over CVS",
 #         "ASP.Net Custom Client-Side Validation",

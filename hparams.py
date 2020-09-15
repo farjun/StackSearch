@@ -2,7 +2,7 @@ from os import path
 
 class HParams:
     DATASET = 'titles'
-    DATASET_SIZE = 200 # takes first DATASET_SIZE posts out of the DATASET
+    DATASET_SIZE = 1000 # takes first DATASET_SIZE posts out of the DATASET
     CROSS_ENTROPY_LOSS_LAMBDA = 1
     RECONSTRUCTION_LOSS_LAMBDA = 1
     filePath = path.join("data", "Posts.xml")
