@@ -23,8 +23,8 @@ class SimpleCnnAutoencoder(tf.keras.Model):
             self.batchNormalization4 = BatchNormalization()
 
         #encode
-        self.down_c1 = tf.keras.layers.Conv2D(300, kernel_size=(5, latent_space_dim), strides=2, padding='same', activation='relu')
-        self.down_c2 = tf.keras.layers.Conv2D(600, kernel_size=(5, 1), strides=2)
+        self.down_c1 = tf.keras.layers.Conv2D(100, kernel_size=(5, latent_space_dim), strides=2, padding='same', activation='relu')
+        self.down_c2 = tf.keras.layers.Conv2D(200, kernel_size=(5, 1), strides=2)
         self.flatten = tf.keras.layers.Flatten()
         self.down_d1 = tf.keras.layers.Dense(latent_space_dim, activation="sigmoid")
 

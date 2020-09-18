@@ -143,12 +143,6 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
     step = 0
     for epoch in tqdm(range(epochs_offset, epochs + epochs_offset), desc="train epochs"):
         for data_noised, data_target in tf.data.Dataset.zip((ds_noised, ds_target)):
-            if step == 0:  # sample one image from feature space
-                pass
-                # plt.figure(1)
-                # plt.imshow(
-                #     data.numpy()[0].reshape(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractor().get_feature_dim()))
-                # plt.show()
             train_step(data_noised, data_target)
             if step % progress_per_step == 0:
                 writer.reprortProgressManyWithNameScope(reportStuff, step)

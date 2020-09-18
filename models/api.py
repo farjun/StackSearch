@@ -34,7 +34,8 @@ class NNHashEncoder(object):
 
     def encode_batch(self, words: List[str]):
         encode = self.encode_batch_no_mask(words)
-        return toBinaryRepresentation(encode)
+        # return toBinaryRepresentation(encode)
+        return encode
 
     def encode_batch_no_mask(self, words):
         feature = self.featureExtractor.get_feature_batch(words)

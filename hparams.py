@@ -2,11 +2,11 @@ from os import path
 
 class HParams:
     DATASET = 'titles'
-    DATASET_SIZE = 1000 # takes first DATASET_SIZE posts out of the DATASET
+    DATASET_SIZE = 100000 # takes first DATASET_SIZE posts out of the DATASET
     CROSS_ENTROPY_LOSS_LAMBDA = 1
     RECONSTRUCTION_LOSS_LAMBDA = 1
     filePath = path.join("data", "Posts.xml")
-    AMOUNT_TO_DROP=2
+    AMOUNT_TO_DROP = 3
     embeddingFilePath = path.join("checkpoints", "word2vec")
     BATCH_SIZE = 4
     OUTPUT_DIM = 4

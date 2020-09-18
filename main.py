@@ -67,12 +67,17 @@ def generate_w2v(*args, **kwargs):
 
 if __name__ == '__main__':
     # generate_w2v()
+
     main(epochs=100, restore_last=False, progress_per_step=2)
     # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    xmlParser = XmlParser(HParams.filePath)
     index = saveYabaDabaIndex()
-    print("index size: ".format(index.size()))
+    # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    # index = MinHashIndex(indexPath)
+    # print("index size: ".format(index.size()))
 
     print(runSearch(index, "Determine a user's timezone")) # should be 13
+    print(runSearch(index, "Converting ARBG to RGB alpha blending")) # should be 2780
     print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string")) # should be 1237
     print(runSearch(index, "ASP.Net Custom Client-Side Validation")) # should be 1401
 #     runSearches([
