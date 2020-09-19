@@ -1,8 +1,12 @@
 from os import path
 
+
 class HParams:
+    USE_REGULARIZER = True
+    REGULARIZER_L2 = 0.1
+    REGULARIZER_L1 = 0.1
     DATASET = 'titles'
-    DATASET_SIZE = 100000 # takes first DATASET_SIZE posts out of the DATASET
+    DATASET_SIZE = 100000  # takes first DATASET_SIZE posts out of the DATASET
     CROSS_ENTROPY_LOSS_LAMBDA = 1
     RECONSTRUCTION_LOSS_LAMBDA = 1
     filePath = path.join("data", "Posts.xml")
@@ -12,7 +16,6 @@ class HParams:
     OUTPUT_DIM = 4
     CKPT_MAX_TO_KEEP = 2
     MAX_SENTENCE_DIM = 16
-
 
     def getCeckpointPath(self):
         return str(self.OUTPUT_DIM)
