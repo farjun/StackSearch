@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 import numpy as np
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
 from dataprocess.api import resolve_data_set
 import tensorflow as tf
