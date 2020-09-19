@@ -133,8 +133,7 @@ def getTrainStepNotGan(model):
 
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
                    save_result_per_epoch=5, restore_last=False, dataset_type: str = HParams.DATASET):
-    ds_noised = resolve_data_set(dataset_type, amount_to_drop=HParams.AMOUNT_TO_DROP)
-    ds_target = resolve_data_set(dataset_type, amount_to_drop=0)
+    ds = resolve_data_set(dataset_type, amount_to_drop=HParams.AMOUNT_TO_DROP)
     nnHashEncoder = getNNHashEncoder(restore_last, skip_discriminator=True)
     # train_step, reportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
     train_step, reportStuff = getTrainStepNotGan(nnHashEncoder.model)
@@ -142,7 +141,7 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
 
     step = 0
     for epoch in tqdm(range(epochs_offset, epochs + epochs_offset), desc="train epochs"):
-        for data_noised, data_target in tf.data.Dataset.zip((ds_noised, ds_target)):
+        for data_noised, data_target in ds:
             train_step(data_noised, data_target)
             if step % progress_per_step == 0:
                 writer.reprortProgressManyWithNameScope(reportStuff, step)
