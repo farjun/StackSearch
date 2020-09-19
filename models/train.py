@@ -133,7 +133,7 @@ def getTrainStepNotGan(model):
 
 def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
                    save_result_per_epoch=5, restore_last=False, dataset_type: str = HParams.DATASET):
-    ds = resolve_data_set(dataset_type, amount_to_drop=HParams.AMOUNT_TO_DROP)
+    ds = resolve_data_set(dataset_type, amount_to_drop=HParams.AMOUNT_TO_DROP, amount_to_swap=HParams.AMOUNT_TO_SWAP)
     nnHashEncoder = getNNHashEncoder(restore_last, skip_discriminator=True)
     # train_step, reportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
     train_step, reportStuff = getTrainStepNotGan(nnHashEncoder.model)
