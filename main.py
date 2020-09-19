@@ -29,7 +29,33 @@ def saveYabaDabaIndex(saveIndexPath=None):
     index.save()
     return index
 
-def runSearch(index, searchQuery=None):
+
+def saveYabaDabaIndexWithMeta(saveIndexPath=None):
+    import io
+    xmlParser = XmlParser(HParams.filePath)
+    indexPath = saveIndexPath or os.path.join(os.path.dirname(HParams.filePath), "index")
+    index = MinHashIndex(indexPath, overwrite=True)
+    hasher = getNNHashEncoder()
+    vecsTsvPath = os.path.join(os.path.dirname(HParams.filePath), "vecs.tsv")
+    metaTsvPath = os.path.join(os.path.dirname(HParams.filePath), "meta_1.tsv")
+    out_vecs = io.open(vecsTsvPath, 'w', encoding='utf-8')
+    out_meta = io.open(metaTsvPath, 'w', encoding='utf-8')
+    out_meta.write(f"ID\tTitle\tEncoding\n")
+    for post in tqdm.tqdm(xmlParser):
+        wordsArr = post.toWordsArray()
+        if len(wordsArr) == 0:
+            continue
+        encodedVecs = hasher.encode_batch(wordsArr)
+        index.insert(post.id, encodedVecs)
+        out_meta.write(f"{post.id}\t{post.title}\t{encodedVecs}\n")
+        out_vecs.write('\t'.join([str(x) for x in encodedVecs]) + "\n")
+    index.index()
+    index.save()
+    out_vecs.close()
+    out_meta.close()
+    return index
+
+def runSearch(index, searchQuery=None, returnEncoded=False):
     print('=' * 10)
     print(searchQuery)
     print('=' * 10)
@@ -37,6 +63,8 @@ def runSearch(index, searchQuery=None):
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
     print(encodedVecs)
+    if returnEncoded:
+        return index.search(encodedVecs, top_k=10), encodedVecs
     return index.search(encodedVecs, top_k=10)
 
 
@@ -47,6 +75,24 @@ def runSearches(searches: list):
     for search in searches:
         no_mask = runSearch(index, search)
         all_vecs.append(no_mask)
+
+def embeddingProjectorPrep(searches: list):
+    import io
+    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    vecsTsvPath = os.path.join(os.path.dirname(HParams.filePath), "vecs.tsv")
+    metaTsvPath = os.path.join(os.path.dirname(HParams.filePath), "meta.tsv")
+    out_vecs = io.open(vecsTsvPath, 'w', encoding='utf-8')
+    out_meta = io.open(metaTsvPath, 'w', encoding='utf-8')
+    index = MinHashIndex(indexPath, overwrite=False)
+
+    out_meta.write(f"search\ttop_k\tencoded\n")
+    for search in searches:
+        top_k, encoded = runSearch(index, search, returnEncoded=True)
+        out_meta.write(f"{search}\t{top_k}\t{encoded}\n")
+        out_vecs.write('\t'.join([str(x) for x in encoded]) + "\n")
+
+    out_vecs.close()
+    out_meta.close()
 
 def main(**kwargs):
     """
