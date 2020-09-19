@@ -134,6 +134,22 @@ def resolve_data_set(dataset_type: str, amount_to_drop=0, amount_to_swap=0):
 
 
 if __name__ == '__main__':
-    ds = temp_f(HParams.getFeatureExtractor(), 5, 5)
-    for item, item2 in ds:
+    tensors = np.array(
+        [np.arange(25).reshape((5,5)) * i for i in range(10)]
+    )
+    ds = tf.data.Dataset.from_tensor_slices(tensors)
+    ds = ds.cache()
+    # ds = ds.shuffle(100)
+    ds = ds.batch(HParams.BATCH_SIZE)  # Efficient
+    ds = ds.map(lambda x: (x, x))  # duplicate to create x,x_hat
+    amount_to_drop = 2
+    if amount_to_drop > 0:
+        ds = ds.map(drop_some_words(amount_to_drop), num_parallel_calls=10)
+    amount_to_swap = 2
+    if amount_to_swap > 0:
+        ds = ds.map(swap_some_words(amount_to_swap), num_parallel_calls=10)
+
+
+    for item in ds:
         print(item)
+

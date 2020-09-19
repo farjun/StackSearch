@@ -2,6 +2,7 @@ from os import path
 
 
 class HParams:
+    LR = 1e-10
     USE_REGULARIZER = True
     REGULARIZER_L2 = 0.1
     REGULARIZER_L1 = 0.1

@@ -102,7 +102,7 @@ def getTrainStep(model, discriminator, noiseFunction=None):
 
 def getTrainStepNotGan(model):
     # optimizers
-    optimizer = tf.keras.optimizers.Adam(1e-4)
+    optimizer = tf.keras.optimizers.Adam(HParams.LR)
 
     # derivetive by
     reconstructionLossObject = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
