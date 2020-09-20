@@ -58,7 +58,7 @@ def saveYabaDabaIndexWithMeta(saveIndexPath=None):
     out_meta.close()
     return index
 
-def runSearch(index, searchQuery=None, returnEncoded=False):
+def runSearch(index, searchQuery=None, returnEncoded=False, shouldBe = None):
     print('=' * 10)
     print(searchQuery)
     print('=' * 10)
@@ -66,9 +66,12 @@ def runSearch(index, searchQuery=None, returnEncoded=False):
     hasher = getNNHashEncoder()
     encodedVecs = hasher.encode_batch(wordsArr)
     print(encodedVecs)
+    res = index.search(encodedVecs, top_k=10)
     if returnEncoded:
-        return index.search(encodedVecs, top_k=10), encodedVecs
-    return index.search(encodedVecs, top_k=10)
+        return res, encodedVecs
+    if shouldBe:
+        return "{shouldBe} in {res} = {isIn}".format(res =res, shouldBe = shouldBe, isIn =shouldBe in res)
+    return res
 
 
 def runSearches(searches: list):
@@ -116,7 +119,7 @@ def generate_w2v(*args, **kwargs):
 if __name__ == '__main__':
     # generate_w2v()
     # clear_summary()
-    main(epochs=5, restore_last=False, progress_per_step=2)
+    main(epochs=1, restore_last=False, progress_per_step=2)
     # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     # xmlParser = XmlParser(HParams.filePath)
     # index = saveYabaDabaIndex()
@@ -124,11 +127,11 @@ if __name__ == '__main__':
     index = MinHashIndex(indexPath)
     print("index size: ".format(index.size()))
 
-    print(runSearch(index, "Determine a user's timezone")) # should be 13
-    print(runSearch(index, "Converting ARBG to RGB alpha blending")) # should be 2780
+    print(runSearch(index, "Determine a user's timezone", shouldBe=13)) # should be 13
+    print(runSearch(index, "Converting ARBG to RGB alpha blending", shouldBe=2780)) # should be 2780
     #[0.9987422  0.9987696  0.99872804 0.9987277 ]
-    print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string")) # should be 1237
-    print(runSearch(index, "ASP.Net Custom Client-Side Validation")) # should be 1401
+    print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string", shouldBe=1237)) # should be 1237
+    print(runSearch(index, "ASP.Net Custom Client-Side Validation", shouldBe=1401)) # should be 1401
 #     runSearches([
 #         "What are the advantages of using SVN over CVS",
 #         "ASP.Net Custom Client-Side Validation",
