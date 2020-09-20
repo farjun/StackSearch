@@ -153,6 +153,13 @@ def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
             for toReport in toReportMany:
                 toReport.reset_states()
 
+def test_yabadaba(restore_last=False, dataset_type: str = HParams.DATASET, **kwargs):
+    testDs = resolve_data_set(dataset_type,trainDs=False)
+    nnHashEncoder = getNNHashEncoder(restore_last, skip_discriminator=True)
+
+    for data_noised, data_target in tqdm(testDs, desc="test steps"):
+        encodedVec = nnHashEncoder.model.encode(data_target)
+
 
 def train_embedding_word2vec(numOfWordsToDrop=0):
     from dataprocess.parser import XmlParser

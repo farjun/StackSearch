@@ -15,8 +15,8 @@ class MyTestCase(unittest.TestCase):
     def setUp(self) -> None:
         indexPath =  os.path.join(os.path.dirname(HParams.filePath), "index")
         self.index = MinHashIndex(indexPath)
-        if self.index.size() != HParams.DATASET_SIZE:
-            logging.info("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.DATASET_SIZE, self.index.size()))
+        if self.index.size() != HParams.TRAIN_DATASET_SIZE:
+            logging.info("HParams.DATASET_SIZE != index.size() : {} != {}, indexing again".format(HParams.TRAIN_DATASET_SIZE, self.index.size()))
             self.index = saveYabaDabaIndex()
 
         self.encoder = getNNHashEncoder()

@@ -101,14 +101,14 @@ def swap_some_words(amount_to_swap):
     return inner
 
 
-def temp_f(featureExtractor: FeatureExtractor, amount_to_drop, amount_to_swap):
-    xmlParser = XmlParser(HParams.filePath)
+def temp_f(featureExtractor: FeatureExtractor, amount_to_drop, amount_to_swap, trainDs = True):
+    xmlParser = XmlParser(HParams.filePath, trainDs = trainDs)
     output_shapes = (HParams.MAX_SENTENCE_DIM, featureExtractor.get_feature_dim(), 1)
     ds = tf.data.Dataset.from_generator(xmlParser.getTitleGenerator(featureExtractor=featureExtractor), (tf.float32),
                                         output_shapes=output_shapes)
     ds = ds.cache()
     ds = ds.shuffle(100)
-    ds = ds.batch(HParams.BATCH_SIZE)  # Efficient
+    ds = ds.batch(HParams.BATCH_SIZE) if trainDs else ds.batch(1) # Efficient
     ds = ds.map(lambda x: (x, x))  # duplicate to create x,x_hat
     if amount_to_drop > 0:
         ds = ds.map(drop_some_words(amount_to_drop), num_parallel_calls=10)
@@ -118,19 +118,21 @@ def temp_f(featureExtractor: FeatureExtractor, amount_to_drop, amount_to_swap):
     return ds
 
 
-def resolve_data_set(dataset_type: str, amount_to_drop=0, amount_to_swap=0):
+def resolve_data_set(dataset_type: str, amount_to_drop=0, amount_to_swap=0, trainDs = True):
     default = "example"
     types = {
         default: get_data_set_example,
         "partial": get_partial_data_set,
         "titles": temp_f
     }
+
     if dataset_type is None:
         dataset_type = default
     if dataset_type not in types:
         print(f"dataset_type:{dataset_type} not in supported keys: {types.keys()}")
         raise NotImplementedError
-    return types[dataset_type](HParams.getFeatureExtractor(), amount_to_drop, amount_to_swap)
+
+    return types[dataset_type](HParams.getFeatureExtractor(), amount_to_drop, amount_to_swap, trainDs)
 
 
 if __name__ == '__main__':

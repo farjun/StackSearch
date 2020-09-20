@@ -4,9 +4,11 @@ from dataprocess.models import Post
 from dataprocess.cleaners import cleanString
 from hparams import HParams
 from gensim.models.doc2vec import TaggedDocument
+
 class XmlParser(object):
-    def __init__(self, postsFilePath, CommentsFilePath = None, maxNumOfSamples = HParams.DATASET_SIZE):
-        self.maxNumOfSamples = maxNumOfSamples
+    def __init__(self, postsFilePath, CommentsFilePath = None, trainDs = True):
+        self.minNumOfSamples = 0 if trainDs else HParams.TRAIN_DATASET_SIZE
+        self.maxNumOfSamples = HParams.TRAIN_DATASET_SIZE if trainDs else HParams.TRAIN_DATASET_SIZE + HParams.TEST_DATASET_SIZE
         self.CommentsFilePath = CommentsFilePath
         self.postsFilePath = postsFilePath
 
@@ -62,8 +64,10 @@ class XmlParser(object):
                 if element.attrib.get('PostTypeId') == '2':
                     postAnswers.append(element.attrib)
                 else:
+                    numOfPostsTaken += 1
+                    if numOfPostsTaken < self.minNumOfSamples:
+                        continue
                     res = self.preproccessAttributes(Post(element.attrib, postAnswers))
-                    numOfPostsTaken+=1
                     yield res
                     if numOfPostsTaken == self.maxNumOfSamples:
                         break
