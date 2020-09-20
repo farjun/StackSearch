@@ -153,9 +153,9 @@ class FeatureExtractor_Temp(FeatureExtractor):
             indexes = np.random.choice(maxSentenceDim, size=self.numOfWordsToDrop, replace=False)
             out[indexes] = 0
         result = out[..., np.newaxis]
-        result = np.interp(result, (-0.0005, 0.0005), (-1., 1.))
-        if np.any(np.abs(result) > 1):
-            print(f"for words:\n{words}, got abs value bigger then 1.\nmax:{result.max()},min:{result.min()}")
+        result = np.interp(result, (-0.0005, 0.0005), (0., 1.))
+        if np.any(np.logical_or(result > 1, result < 0)):
+            print(f"for words:\n{words}, got bad values.\nmax:{result.max()},min:{result.min()}")
             result = np.clip(result, -1, 1)
         return result
 
