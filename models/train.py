@@ -184,9 +184,13 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
         nnHashEncoder.save()
 
 
-    for toReportMany in trainReportStuff.values():
-        for toReport in toReportMany:
-            toReport.reset_states()
+        for toReportMany in trainReportStuff.values():
+            for toReport in toReportMany:
+                toReport.reset_states()
+
+        for toReportMany in testReportStuff.values():
+            for toReport in toReportMany:
+                toReport.reset_states()
 
 
 def train_embedding_word2vec(numOfWordsToDrop=0):

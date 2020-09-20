@@ -116,7 +116,7 @@ def generate_w2v(*args, **kwargs):
 if __name__ == '__main__':
     # generate_w2v()
     # clear_summary()
-    main(epochs=5, restore_last=True, progress_per_step=2)
+    main(epochs=5, restore_last=False, progress_per_step=2)
     # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     xmlParser = XmlParser(HParams.filePath)
     index = saveYabaDabaIndex()
