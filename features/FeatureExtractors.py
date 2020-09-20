@@ -116,7 +116,7 @@ class W2VFeatureExtractor(FeatureExtractor):
         result = sum_vec / len(words)
         # self._updateminmax(result)
         result.resize((maxSentenceDim, self.get_feature_dim(), 1))
-        return np.interp(result, (result.min(), result.max()), (-0.00048781678, 0.00048719026))
+        return np.interp(result,  (-0.0005, 0.0005), (-1., 1.))
 
 
 class FeatureExtractor_Temp(FeatureExtractor):
@@ -153,8 +153,7 @@ class FeatureExtractor_Temp(FeatureExtractor):
             indexes = np.random.choice(maxSentenceDim, size=self.numOfWordsToDrop, replace=False)
             out[indexes] = 0
         result = out[..., np.newaxis]
-        # result = np.interp(result, (result.min(), result.max()), (-0.00048781678, 0.00048719026))
-
+        result = np.interp(result,  (-0.0005, 0.0005), (-1., 1.))
         return result
 
 
