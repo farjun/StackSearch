@@ -71,8 +71,8 @@ class NNHashEncoder(object):
 def getNNHashEncoder(restore_last=True,skip_discriminator=False):
     featureExtractor = HParams.getFeatureExtractor()
     # model = DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
-    # model = SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
-    model = SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
+    model = SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
+    # model = SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
     if not skip_discriminator:
         discriminator = DabaDiscriminator()
     else:
