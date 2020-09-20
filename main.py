@@ -13,9 +13,11 @@ def train_partial(*args, **kwargs):
     import models.train
     models.train.train_and_test_yabadaba(*args, **kwargs, dataset_type="partial_titles")
 
+
 def test_yabadaba(*args, **kwargs):
     import models.train
     models.train.test_yabadaba(*args, **kwargs, dataset_type="partial_titles")
+
 
 def saveYabaDabaIndex(saveIndexPath=None):
     xmlParser = XmlParser(HParams.filePath)
@@ -58,7 +60,8 @@ def saveYabaDabaIndexWithMeta(saveIndexPath=None):
     out_meta.close()
     return index
 
-def runSearch(index, searchQuery=None, returnEncoded=False, shouldBe = None):
+
+def runSearch(index, searchQuery=None, returnEncoded=False, shouldBe=None):
     print('=' * 10)
     print(searchQuery)
     print('=' * 10)
@@ -70,7 +73,7 @@ def runSearch(index, searchQuery=None, returnEncoded=False, shouldBe = None):
     if returnEncoded:
         return res, encodedVecs
     if shouldBe:
-        return "{shouldBe} in {res} = {isIn}".format(res =res, shouldBe = shouldBe, isIn =str(shouldBe) in res)
+        return "{shouldBe} in {res} = {isIn}".format(res=res, shouldBe=shouldBe, isIn=str(shouldBe) in res)
     return res
 
 
@@ -81,6 +84,7 @@ def runSearches(searches: list):
     for search in searches:
         no_mask = runSearch(index, search)
         all_vecs.append(no_mask)
+
 
 def embeddingProjectorPrep(searches: list):
     import io
@@ -100,15 +104,17 @@ def embeddingProjectorPrep(searches: list):
     out_vecs.close()
     out_meta.close()
 
+
 def main(**kwargs):
     """
     :param kwargs: args which will be passed to train_partial -> train_yabadaba
     """
     models.train.train_and_test_yabadaba(**kwargs)
 
+
 def clear_summary():
     import shutil
-    shutil.rmtree(os.path.join("summary","train"),ignore_errors=True)
+    shutil.rmtree("summary", ignore_errors=True)
 
 
 def generate_w2v(*args, **kwargs):
@@ -127,11 +133,12 @@ if __name__ == '__main__':
     index = MinHashIndex(indexPath)
     print("index size: ".format(index.size()))
 
-    print(runSearch(index, "Determine a user's timezone", shouldBe=13)) # should be 13
-    print(runSearch(index, "Converting ARBG to RGB alpha blending", shouldBe=2780)) # should be 2780
-    #[0.9987422  0.9987696  0.99872804 0.9987277 ]
-    print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string", shouldBe=1237)) # should be 1237
-    print(runSearch(index, "ASP.Net Custom Client-Side Validation", shouldBe=1401)) # should be 1401
+    print(runSearch(index, "Determine a user's timezone", shouldBe=13))  # should be 13
+    print(runSearch(index, "Converting ARBG to RGB alpha blending", shouldBe=2780))  # should be 2780
+    # [0.9987422  0.9987696  0.99872804 0.9987277 ]
+    print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string",
+                    shouldBe=1237))  # should be 1237
+    print(runSearch(index, "ASP.Net Custom Client-Side Validation", shouldBe=1401))  # should be 1401
 #     runSearches([
 #         "What are the advantages of using SVN over CVS",
 #         "ASP.Net Custom Client-Side Validation",
