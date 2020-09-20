@@ -2,6 +2,7 @@ from os import path
 
 
 class HParams:
+    USE_CNN = False
     LR = 1e-4
     USE_REGULARIZER = True
     USE_BATCH_NORMALIZATION = False

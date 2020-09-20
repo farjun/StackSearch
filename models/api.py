@@ -19,11 +19,12 @@ def toBinaryRepresentation(arr):
     return np.asarray(res)
 
 
-def toBinaryThreshold(arr, threshold = 0.5):
+def toBinaryThreshold(arr, threshold=0.5):
     mask = arr > threshold
     arr[mask] = 1
     arr[np.logical_not(mask)] = 0
     return arr.flatten()
+
 
 class NNHashEncoder(object):
     def __init__(self, model, discriminator, featureExtractor, optimizer=tf.optimizers.Adam(), restore_last=False):
@@ -68,14 +69,15 @@ class NNHashEncoder(object):
         self.ckpt_manager.save()
 
 
-def getNNHashEncoder(restore_last=True,skip_discriminator=False):
+def getNNHashEncoder(restore_last=True, skip_discriminator=False):
     featureExtractor = HParams.getFeatureExtractor()
     # model = DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
-    model = SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
-    # model = SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
+    if HParams.USE_CNN:
+        model = SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
+    else:
+        model = SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
     if not skip_discriminator:
         discriminator = DabaDiscriminator()
     else:
         discriminator = None
     return NNHashEncoder(model, discriminator, featureExtractor, restore_last=restore_last)
-
