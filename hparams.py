@@ -4,6 +4,7 @@ from os import path
 class HParams:
     LR = 1e-4
     USE_REGULARIZER = True
+    USE_BATCH_NORMALIZATION = False
     REGULARIZER_L2 = 0.1
     REGULARIZER_L1 = 0.1
     DATASET = 'titles'

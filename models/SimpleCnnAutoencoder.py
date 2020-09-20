@@ -15,7 +15,7 @@ def get_reg(use_reg: bool):
 
 
 class SimpleCnnAutoencoder(tf.keras.Model):
-    def __init__(self, featureDim, latent_space_dim, useNormalization=False, *args, **kwargs):
+    def __init__(self, featureDim, latent_space_dim, useNormalization=HParams.USE_BATCH_NORMALIZATION, *args, **kwargs):
         self.useNormalization = useNormalization
         assert featureDim % 4 == 0
         assert HParams.MAX_SENTENCE_DIM % 4 == 0

@@ -15,7 +15,7 @@ def get_reg(use_reg: bool):
 
 
 class SimpleFCNAutoencoder(tf.keras.Model):
-    def __init__(self, featureDim, latent_space_dim, useNormalization=False, *args, **kwargs):
+    def __init__(self, featureDim, latent_space_dim, useNormalization=HParams.USE_BATCH_NORMALIZATION, *args, **kwargs):
         self.useNormalization = useNormalization
         self.inputshape = (HParams.MAX_SENTENCE_DIM, featureDim)
         self.latent_space_dim = latent_space_dim
