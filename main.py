@@ -118,14 +118,15 @@ if __name__ == '__main__':
     # clear_summary()
     main(epochs=5, restore_last=False, progress_per_step=2)
     # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    xmlParser = XmlParser(HParams.filePath)
-    index = saveYabaDabaIndex()
-    # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    # index = MinHashIndex(indexPath)
-    # print("index size: ".format(index.size()))
+    # xmlParser = XmlParser(HParams.filePath)
+    # index = saveYabaDabaIndex()
+    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    index = MinHashIndex(indexPath)
+    print("index size: ".format(index.size()))
 
     print(runSearch(index, "Determine a user's timezone")) # should be 13
     print(runSearch(index, "Converting ARBG to RGB alpha blending")) # should be 2780
+    #[0.9987422  0.9987696  0.99872804 0.9987277 ]
     print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string")) # should be 1237
     print(runSearch(index, "ASP.Net Custom Client-Side Validation")) # should be 1401
 #     runSearches([
