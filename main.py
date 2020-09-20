@@ -70,7 +70,7 @@ def runSearch(index, searchQuery=None, returnEncoded=False, shouldBe = None):
     if returnEncoded:
         return res, encodedVecs
     if shouldBe:
-        return "{shouldBe} in {res} = {isIn}".format(res =res, shouldBe = shouldBe, isIn =shouldBe in res)
+        return "{shouldBe} in {res} = {isIn}".format(res =res, shouldBe = shouldBe, isIn =str(shouldBe) in res)
     return res
 
 
