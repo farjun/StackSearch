@@ -153,7 +153,7 @@ class FeatureExtractor_Temp(FeatureExtractor):
             indexes = np.random.choice(maxSentenceDim, size=self.numOfWordsToDrop, replace=False)
             out[indexes] = 0
         result = out[..., np.newaxis]
-        result = np.interp(result, (result.min(), result.max()), (-0.00048781678, 0.00048719026))
+        # result = np.interp(result, (result.min(), result.max()), (-0.00048781678, 0.00048719026))
 
         return result
 
