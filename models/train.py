@@ -13,9 +13,9 @@ cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 
 class TfWriter(object):
-    def __init__(self):
+    def __init__(self, runType = 'train'):
         now_as_string = datetime.now().strftime("%m_%d_%H_%M_%S")  # current date and time
-        writer_path = os.path.join("summary", "train", now_as_string)
+        writer_path = os.path.join("summary", runType, now_as_string)
         self.writer = tf.summary.create_file_writer(writer_path)
         print(f"writer_path {writer_path}")
 
@@ -108,9 +108,9 @@ def getTrainStepNotGan(model):
     reconstructionLossObject = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
     binaryLossObject = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
 
-    reconstructionLosssReport = tf.keras.metrics.Mean(name='reconstruction-train_loss')
-    binaryLossReport = tf.keras.metrics.Mean(name='binary-train_loss')
-    lossReport = tf.keras.metrics.Mean(name='total-train_loss')
+    reconstructionLosssReport = tf.keras.metrics.Mean(name='reconstruction_loss')
+    binaryLossReport = tf.keras.metrics.Mean(name='binary_loss')
+    lossReport = tf.keras.metrics.Mean(name='total_loss')
 
     @tf.function
     def train_step(data_noised, data_target):
@@ -130,35 +130,63 @@ def getTrainStepNotGan(model):
 
     return train_step, {"Gen": [reconstructionLosssReport, binaryLossReport, lossReport]}
 
+def getTestStepNotGan(model):
 
-def train_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
-                   save_result_per_epoch=5, restore_last=False, dataset_type: str = HParams.DATASET):
+    # derivetive by
+    reconstructionLossObject = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
+    binaryLossObject = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
+
+    binaryLossReport = tf.keras.metrics.Mean(name='binary_loss')
+    reconstructionLosssReport = tf.keras.metrics.Mean(name='reconstruction_loss')
+    lossReport = tf.keras.metrics.Mean(name='total_loss')
+
+    @tf.function
+    def test_step(data_noised, data_target):
+        encoded_data = model.encode(data_noised)
+        genOutput = model.decode(encoded_data)
+        reconstructionLoss = reconstructionLossObject(genOutput, data_target)
+        binaryLoss = binaryLossObject(encoded_data, tf.constant(0.5, shape=encoded_data.shape))
+        binaryLossReport(binaryLoss)
+
+        reconstructionLosssReport(reconstructionLoss)
+        loss = HParams.RECONSTRUCTION_LOSS_LAMBDA * reconstructionLoss
+        lossReport(loss)
+
+    return test_step, {"Gen": [reconstructionLosssReport, binaryLossReport, lossReport]}
+
+
+def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
+                            save_result_per_epoch=5, restore_last=False, dataset_type: str = HParams.DATASET):
     ds = resolve_data_set(dataset_type, amount_to_drop=HParams.AMOUNT_TO_DROP, amount_to_swap=HParams.AMOUNT_TO_SWAP)
+    testDs = iter(resolve_data_set(dataset_type,trainDs=False).repeat(-1))
+
     nnHashEncoder = getNNHashEncoder(restore_last, skip_discriminator=True)
     # train_step, reportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
-    train_step, reportStuff = getTrainStepNotGan(nnHashEncoder.model)
-    writer = TfWriter()
+    train_step, trainReportStuff = getTrainStepNotGan(nnHashEncoder.model)
+    test_step, testReportStuff = getTestStepNotGan(nnHashEncoder.model)
+    trainWriter = TfWriter(runType = 'train')
+    testWriter = TfWriter( runType = 'test')
 
     step = 0
     for epoch in tqdm(range(epochs_offset, epochs + epochs_offset), desc="train epochs"):
         for data_noised, data_target in ds:
             train_step(data_noised, data_target)
+
             if step % progress_per_step == 0:
-                writer.reprortProgressManyWithNameScope(reportStuff, step)
+                test_data_noised, test_data_target = next(testDs)
+                test_step(test_data_noised, test_data_target)
+
+                trainWriter.reprortProgressManyWithNameScope(trainReportStuff, step)
+                testWriter.reprortProgressManyWithNameScope(testReportStuff, step)
 
             step += 1
 
         nnHashEncoder.save()
-        for toReportMany in reportStuff.values():
-            for toReport in toReportMany:
-                toReport.reset_states()
 
-def test_yabadaba(restore_last=False, dataset_type: str = HParams.DATASET, **kwargs):
-    testDs = resolve_data_set(dataset_type,trainDs=False)
-    nnHashEncoder = getNNHashEncoder(restore_last, skip_discriminator=True)
 
-    for data_noised, data_target in tqdm(testDs, desc="test steps"):
-        encodedVec = nnHashEncoder.model.encode(data_target)
+    for toReportMany in trainReportStuff.values():
+        for toReport in toReportMany:
+            toReport.reset_states()
 
 
 def train_embedding_word2vec(numOfWordsToDrop=0):

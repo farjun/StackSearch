@@ -11,7 +11,7 @@ from models.api import getNNHashEncoder
 
 def train_partial(*args, **kwargs):
     import models.train
-    models.train.train_yabadaba(*args, **kwargs, dataset_type="partial_titles")
+    models.train.train_and_test_yabadaba(*args, **kwargs, dataset_type="partial_titles")
 
 def test_yabadaba(*args, **kwargs):
     import models.train
@@ -101,9 +101,7 @@ def main(**kwargs):
     """
     :param kwargs: args which will be passed to train_partial -> train_yabadaba
     """
-    # models.train.train_yabadaba(**kwargs)
-    kwargs['restore_last'] = True
-    models.train.test_yabadaba(**kwargs)
+    models.train.train_and_test_yabadaba(**kwargs)
 
 def clear_summary():
     import shutil
@@ -117,7 +115,7 @@ def generate_w2v(*args, **kwargs):
 
 if __name__ == '__main__':
     # generate_w2v()
-
+    # clear_summary()
     main(epochs=5, restore_last=True, progress_per_step=2)
     # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     xmlParser = XmlParser(HParams.filePath)
