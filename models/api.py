@@ -6,6 +6,7 @@ import tensorflow as tf
 # from tqdm.auto import tqdm # Uncomment for Colab-Notebook
 from dataprocess.cleaners import cleanQuery
 from hparams import HParams
+from models.DabaCnnAutoencoder import DabaCnnAutoencoder
 from models.SimpleCnnAutoencoder import SimpleCnnAutoencoder
 from models.SimpleFCNAutoencoder import SimpleFCNAutoencoder
 from models.YabaDabaDiscriminator import DabaDiscriminator
@@ -71,11 +72,12 @@ class NNHashEncoder(object):
 
 def getNNHashEncoder(restore_last=True, skip_discriminator=False):
     featureExtractor = HParams.getFeatureExtractor()
-    # model = DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
-    if HParams.USE_CNN:
-        model = SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
-    else:
-        model = SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
+    models = {
+        'GAN' : DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
+        'CNN' : SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
+        'FCN' : SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
+    }
+    model = models[ HParams.MODEL_TYPE ]
     if not skip_discriminator:
         discriminator = DabaDiscriminator()
     else:

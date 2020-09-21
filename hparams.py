@@ -2,7 +2,7 @@ from os import path
 
 
 class HParams:
-    USE_CNN = False
+    MODEL_TYPE = 'GAN' # GAN, CNN, FCN
     LR = 1e-4
     USE_REGULARIZER = True
     USE_BATCH_NORMALIZATION = False
