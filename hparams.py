@@ -21,8 +21,7 @@ class HParams:
     OUTPUT_DIM = 4
     CKPT_MAX_TO_KEEP = 2
     MAX_SENTENCE_DIM = 16
-    LAST_ACTIVATION = None
-    MODEL_DTYPE = 'float16'
+    LAST_ACTIVATION = 'sigmoid'
 
     def getCeckpointPath(self):
         return str(self.OUTPUT_DIM)
