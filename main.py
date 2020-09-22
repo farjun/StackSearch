@@ -7,6 +7,8 @@ from dataprocess.parser import XmlParser
 from hparams import HParams
 from index.index import MinHashIndex
 from models.api import getNNHashEncoder
+import tensorflow as tf
+tf.keras.backend.set_floatx(HParams.MODEL_DTYPE)
 
 
 def train_partial(*args, **kwargs):
