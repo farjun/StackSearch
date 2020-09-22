@@ -78,7 +78,7 @@ def getNNHashEncoder(restore_last=True, skip_discriminator=False):
         'FCN' : SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
     }
     model = models[ HParams.MODEL_TYPE ]
-    if not skip_discriminator:
+    if HParams.MODEL_TYPE == 'GAN':
         discriminator = DabaDiscriminator()
     else:
         discriminator = None
