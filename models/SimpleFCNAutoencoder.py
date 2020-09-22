@@ -30,7 +30,7 @@ class SimpleFCNAutoencoder(tf.keras.Model):
         self.flatten = tf.keras.layers.Flatten()
         self.down_d1 = tf.keras.layers.Dense(100, activation='relu', **get_reg(HParams.USE_REGULARIZER))
         self.down_d2 = tf.keras.layers.Dense(200, activation="relu", **get_reg(HParams.USE_REGULARIZER))
-        self.down_d3 = tf.keras.layers.Dense(latent_space_dim, activation="sigmoid", **get_reg(HParams.USE_REGULARIZER))
+        self.down_d3 = tf.keras.layers.Dense(latent_space_dim, activation=HParams.LAST_ACTIVATION, **get_reg(HParams.USE_REGULARIZER))
 
         # decode
         self.up_d1 = Dense(512, activation='relu', **get_reg(HParams.USE_REGULARIZER))
