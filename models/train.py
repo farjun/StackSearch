@@ -65,7 +65,7 @@ def getGeneratorLoss(lossObject):
     return generator_research_loss, [generatorReconstructionLosssReport, generatorVsDiscriminatorLosssReport]
 
 
-def getTrainStep(model, discriminator, noiseFunction=None):
+def getTrainStep(model, discriminator):
     # optimizers
     generator_optimizer = tf.keras.optimizers.Adam(1e-4)
     discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
@@ -80,15 +80,15 @@ def getTrainStep(model, discriminator, noiseFunction=None):
         probs=tf.constant(0.5, shape=(HParams.BATCH_SIZE, HParams.OUTPUT_DIM)))
 
     @tf.function
-    def train_step(data: tf.Tensor):
+    def train_step(data_noised, data_target):
         with tf.GradientTape(persistent=True) as gen_tape, tf.GradientTape() as disc_tape:
-            encoded_data = model.encode(data, training=True)
+            encoded_data = model.encode(data_noised, training=True)
             genOutput = model.decode(encoded_data, training=True)
             randomVec = randomVecDistribution.sample()
             fake_vec_output = discriminator(encoded_data, training=True)
             real_vec_output = discriminator(randomVec, training=True)
 
-            generator_loss = genTrainLoss(fake_vec_output, data, genOutput)
+            generator_loss = genTrainLoss(fake_vec_output, data_target, genOutput)
             discriminator_loss = discTrainLoss(real_vec_output, fake_vec_output)
 
         autoencoder_gradients = gen_tape.gradient(generator_loss, model.trainable_variables)
@@ -130,7 +130,7 @@ def getTrainStepNotGan(model):
 
     return train_step, {"Gen": [reconstructionLosssReport, binaryLossReport, lossReport]}
 
-def getTestStepNotGan(model):
+def getTestStep(model):
 
     # derivetive by
     reconstructionLossObject = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
@@ -165,7 +165,7 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
         train_step, trainReportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
     else:
         train_step, trainReportStuff = getTrainStepNotGan(nnHashEncoder.model)
-    test_step, testReportStuff = getTestStepNotGan(nnHashEncoder.model)
+    test_step, testReportStuff = getTestStep(nnHashEncoder.model)
     trainWriter = TfWriter(runType = 'train')
     testWriter = TfWriter( runType = 'test')
 
