@@ -65,7 +65,7 @@ def getGeneratorLoss(lossObject):
     return generator_research_loss, [generatorReconstructionLosssReport, generatorVsDiscriminatorLosssReport]
 
 
-def getTrainStep(model, discriminator):
+def getTrainStepYesGan(model, discriminator):
     # optimizers
     generator_optimizer = tf.keras.optimizers.Adam(1e-4)
     discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
@@ -161,8 +161,8 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
     testDs = iter(resolve_data_set(dataset_type,trainDs=False).repeat(-1))
 
     nnHashEncoder = getNNHashEncoder(restore_last, skip_discriminator=True)
-    if HParams.MODEL_TYPE == 'GAN':
-        train_step, trainReportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
+    if HParams.MODEL_MODE == 'GAN':
+        train_step, trainReportStuff = getTrainStepYesGan(nnHashEncoder.model, nnHashEncoder.discriminator)
     else:
         train_step, trainReportStuff = getTrainStepNotGan(nnHashEncoder.model)
     test_step, testReportStuff = getTestStep(nnHashEncoder.model)

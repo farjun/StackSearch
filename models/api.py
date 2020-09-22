@@ -73,12 +73,12 @@ class NNHashEncoder(object):
 def getNNHashEncoder(restore_last=True, skip_discriminator=False):
     featureExtractor = HParams.getFeatureExtractor()
     models = {
-        'GAN' : DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
+        'DABA' : DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
         'CNN' : SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
-        'FCN' : SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM)
+        'FCN' : SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
     }
     model = models[ HParams.MODEL_TYPE ]
-    if HParams.MODEL_TYPE == 'GAN':
+    if HParams.MODEL_MODE == 'GAN':
         discriminator = DabaDiscriminator()
     else:
         discriminator = None
