@@ -161,8 +161,10 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
     testDs = iter(resolve_data_set(dataset_type,trainDs=False).repeat(-1))
 
     nnHashEncoder = getNNHashEncoder(restore_last, skip_discriminator=True)
-    # train_step, reportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
-    train_step, trainReportStuff = getTrainStepNotGan(nnHashEncoder.model)
+    if HParams.MODEL_TYPE == 'GAN':
+        train_step, trainReportStuff = getTrainStep(nnHashEncoder.model, nnHashEncoder.discriminator)
+    else:
+        train_step, trainReportStuff = getTrainStepNotGan(nnHashEncoder.model)
     test_step, testReportStuff = getTestStepNotGan(nnHashEncoder.model)
     trainWriter = TfWriter(runType = 'train')
     testWriter = TfWriter( runType = 'test')
