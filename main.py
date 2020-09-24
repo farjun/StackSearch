@@ -175,7 +175,7 @@ if __name__ == '__main__':
     # generate_w2v()
     # clear_summary()
 
-    # main(epochs=100, restore_last=False, progress_per_step=10)
+    main(epochs=1, restore_last=False, progress_per_step=10)
 
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     # xmlParser = XmlParser(HParams.filePath)
