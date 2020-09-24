@@ -8,7 +8,9 @@ from hparams import HParams
 from index.index import MinHashIndex
 from index.index_new import MinHashIndex as NewMinHashIndex
 from models.api import getNNHashEncoder
-
+import hashlib
+import struct
+from six import ensure_binary
 
 def train_partial(*args, **kwargs):
     import models.train
@@ -146,11 +148,36 @@ def generate_w2v(*args, **kwargs):
     models.train.train_embedding_word2vec_new(*args, **kwargs)
 
 
+def trained_model_hash(data):
+    """A 32-bit hash function based on SHA1.
+
+    **Tamer: based on MinHash default hashfunction. They used SHA1 (128 bit) and took the first 4 bytes (32 bits)
+
+    Args:
+        data (bytes): the data to generate 32-bit integer hash from.
+
+    Returns:
+        int: an integer hash value that can be encoded using 32 bits.
+    """
+    # return struct.unpack('<I', hashlib.sha1(data).digest()[:4])[0]  # original
+
+    print('-----------------------------------------------------------')
+    print('----data', data)
+    hasher = getNNHashEncoder()
+    encodedVecs = hasher.encode_batch(data.split())
+    print('----encodec vec', encodedVecs)
+    encodedVecs = encodedVecs.tobytes()
+    print('----bytes', encodedVecs)
+    return struct.unpack('<I', encodedVecs[:4])[0]
+
+
 if __name__ == '__main__':
     # generate_w2v()
     # clear_summary()
-    main(epochs=1, restore_last=False, progress_per_step=2)
-    # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+
+    # main(epochs=100, restore_last=False, progress_per_step=10)
+
+    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     # xmlParser = XmlParser(HParams.filePath)
     # index = saveYabaDabaIndex()
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
@@ -169,17 +196,23 @@ if __name__ == '__main__':
 #         "regex to pull"
 #     ])
 
-    index_ = NewMinHashIndex(indexPath, overwrite=True, threshold=0.3)
-    index_.insert(4, ['luke', 'dunphy'])
-    index_.insert(5, ['phill', 'dunphy'])
-    index_.insert(6, ['haley', 'dunphy'])
-    print(index_.search(['alex', 'dunphy']))
+
+    index_ = NewMinHashIndex(indexPath, overwrite=True, threshold=0.5, hash_func=trained_model_hash)
+    # index_.insert(4, ['luke', 'dunphy'])
+    # index_.insert(5, ['phill', 'dunphy'])
+    # index_.insert(6, ['haley', 'dunphy'])
+    # print(index_.search(['alex', 'dunphy']))
+
+    index_.insert(4, ['luke dunphy'])
+    index_.insert(5, ['phill dunphy'])
+    index_.insert(6, ['haley dunphy'])
+    print(index_.search(['alex dunphy']))
 
     # index_.insert(1, ['minhash', 'is', 'a', 'probabilistic', 'data', 'structure', 'for',
     #         'estimating', 'the', 'similarity', 'between', 'datasets'])
-    index_.insert(2, ['minhash', 'is', 'a', 'probability', 'data', 'structure', 'for',
-                        'estimating', 'the', 'similarity', 'between', 'documents'])
-    index_.insert(3, ['minhash', 'is', 'probability', 'data', 'structure', 'for',
-                        'estimating', 'the', 'similarity', 'between', 'documents'])
-    print(index_.search(['minhash', 'is', 'a', 'probabilistic', 'data', 'structure', 'for',
-                         'estimating', 'the', 'similarity', 'between', 'datasets']))
+    # index_.insert(2, ['minhash', 'is', 'a', 'probability', 'data', 'structure', 'for',
+    #                     'estimating', 'the', 'similarity', 'between', 'documents'])
+    # index_.insert(3, ['minhash', 'is', 'probability', 'data', 'structure', 'for',
+    #                     'estimating', 'the', 'similarity', 'between', 'documents'])
+    # print(index_.search(['minhash', 'is', 'a', 'probabilistic', 'data', 'structure', 'for',
+    #                      'estimating', 'the', 'similarity', 'between', 'datasets']))

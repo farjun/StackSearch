@@ -11,8 +11,9 @@ from index.utils import createDirIfNotExists
 
 class MinHashIndex(object):
 
-    def __init__(self, indexPath, overwrite=False, hash_func=None, threshold=0.5):
+    def __init__(self, indexPath, overwrite=False, hash_func=None, threshold=0.5, num_perm=128):
         self.indexPath = indexPath
+        self.num_perm = num_perm
         createDirIfNotExists(indexPath)
         self.indexPickleFilePath = os.path.join(indexPath, "main_index_new")
         self._hash_func = hash_func
@@ -26,7 +27,7 @@ class MinHashIndex(object):
             self.initNewIndex()
 
     def initNewIndex(self):
-        self.lsh = MinHashLSH(threshold=self._threshold, num_perm=128)
+        self.lsh = MinHashLSH(threshold=self._threshold, num_perm=self.num_perm)
         os.makedirs(os.path.dirname(self.indexPickleFilePath), exist_ok=True)
         with open(self.indexPickleFilePath, 'wb') as f:
             f.write(b"")  # create file
@@ -44,7 +45,8 @@ class MinHashIndex(object):
                 print("Warning, Config was not able to load from an empty config file")
 
     def sentence_minhash(self, text: List[str]):
-        m = MinHash(num_perm=128) if self._hash_func is None else MinHash(num_perm=128, hashfunc=self._hash_func)
+        m = MinHash(num_perm=self.num_perm) if self._hash_func is None else MinHash(num_perm=self.num_perm
+                                                                                    , hashfunc=self._hash_func)
         for word in text:
             m.update(word.encode('utf8'))
         return m
