@@ -180,16 +180,15 @@ if __name__ == '__main__':
     indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     # xmlParser = XmlParser(HParams.filePath)
     # index = saveYabaDabaIndex()
-    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    index = MinHashIndex(indexPath)
-    print("index size: ".format(index.size()))
-
-    print(runSearch(index, "Determine a user's timezone", shouldBe=13))  # should be 13
-    print(runSearch(index, "Converting ARBG to RGB alpha blending", shouldBe=2780))  # should be 2780
-    # [0.9987422  0.9987696  0.99872804 0.9987277 ]
-    print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string",
-                    shouldBe=1237))  # should be 1237
-    print(runSearch(index, "ASP.Net Custom Client-Side Validation", shouldBe=1401))  # should be 1401
+    # index = MinHashIndex(indexPath)
+    # print("index size: ".format(index.size()))
+    #
+    # print(runSearch(index, "Determine a user's timezone", shouldBe=13))  # should be 13
+    # print(runSearch(index, "Converting ARBG to RGB alpha blending", shouldBe=2780))  # should be 2780
+    # # [0.9987422  0.9987696  0.99872804 0.9987277 ]
+    # print(runSearch(index, "Regex: To pull out a sub-string between two tags in a string",
+    #                 shouldBe=1237))  # should be 1237
+    # print(runSearch(index, "ASP.Net Custom Client-Side Validation", shouldBe=1401))  # should be 1401
 #     runSearches([
 #         "What are the advantages of using SVN over CVS",
 #         "ASP.Net Custom Client-Side Validation",
@@ -198,15 +197,22 @@ if __name__ == '__main__':
 
 
     index_ = NewMinHashIndex(indexPath, overwrite=True, threshold=0.5, hash_func=trained_model_hash)
-    # index_.insert(4, ['luke', 'dunphy'])
-    # index_.insert(5, ['phill', 'dunphy'])
-    # index_.insert(6, ['haley', 'dunphy'])
-    # print(index_.search(['alex', 'dunphy']))
 
-    index_.insert(4, ['luke dunphy'])
-    index_.insert(5, ['phill dunphy'])
-    index_.insert(6, ['haley dunphy'])
-    print(index_.search(['alex dunphy']))
+
+    index_.insert(4, [' '.join(cleanQuery("Determine a user's timezone"))])
+    index_.insert(7, [' '.join(cleanQuery("Determine a user's timezone"))])
+    index_.insert(8, [' '.join(cleanQuery("Determine a user's timezone"))])
+    index_.insert(5, [' '.join(cleanQuery("Converting ARBG to RGB alpha blending"))])
+    index_.insert(6, [' '.join(cleanQuery("Regex: To pull out a sub-string between two tags in a string"))])
+
+    print(index_.search([' '.join(cleanQuery("Determine a user's timezone"))]))
+    #
+    # index_.insert(4, cleanQuery("Determine a user's timezone"))
+    # index_.insert(5, cleanQuery("Converting ARBG to RGB alpha blending"))
+    # index_.insert(6, cleanQuery("Regex: To pull out a sub-string between two tags in a string"))
+    #
+    # print(index_.search(cleanQuery("Determine")))
+
 
     # index_.insert(1, ['minhash', 'is', 'a', 'probabilistic', 'data', 'structure', 'for',
     #         'estimating', 'the', 'similarity', 'between', 'datasets'])
