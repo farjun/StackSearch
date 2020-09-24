@@ -6,6 +6,7 @@ from dataprocess.cleaners import cleanQuery
 from dataprocess.parser import XmlParser
 from hparams import HParams
 from index.index import MinHashIndex
+from index.index_new import MinHashIndex as NewMinHashIndex
 from models.api import getNNHashEncoder
 
 
@@ -105,6 +106,29 @@ def embeddingProjectorPrep(searches: list):
     out_meta.close()
 
 
+def W2VembeddingProjector():
+    import io
+    from dataprocess.parser import XmlParser
+    xmlParser = XmlParser(HParams.filePath)
+    vecsTsvPath = os.path.join(os.path.dirname(HParams.filePath), "vecs-w2v.tsv")
+    metaTsvPath = os.path.join(os.path.dirname(HParams.filePath), "meta-w2v.tsv")
+    out_vecs = io.open(vecsTsvPath, 'w', encoding='utf-8')
+    out_meta = io.open(metaTsvPath, 'w', encoding='utf-8')
+    featureExtractor = HParams.getFeatureExtractor()
+    out_meta.write(f"sentence\tencoding\tlength\n")
+    xmlParser = XmlParser(HParams.filePath)
+    sentences=(xmlParser.getSentsGenerator())()
+    for sentence in sentences:
+        clean = cleanQuery(sentence)
+        batch_encoding=featureExtractor.get_feature_batch(clean)
+        encoding=batch_encoding.reshape((16*200,))
+        out_meta.write(f"{sentence}\t{encoding}\t{len(clean)}\n")
+        out_vecs.write('\t'.join([str(x) for x in encoding]) + "\n")
+
+    out_vecs.close()
+    out_meta.close()
+
+
 def main(**kwargs):
     """
     :param kwargs: args which will be passed to train_partial -> train_yabadaba
@@ -144,3 +168,18 @@ if __name__ == '__main__':
 #         "ASP.Net Custom Client-Side Validation",
 #         "regex to pull"
 #     ])
+
+    index_ = NewMinHashIndex(indexPath, overwrite=True, threshold=0.3)
+    index_.insert(4, ['luke', 'dunphy'])
+    index_.insert(5, ['phill', 'dunphy'])
+    index_.insert(6, ['haley', 'dunphy'])
+    print(index_.search(['alex', 'dunphy']))
+
+    # index_.insert(1, ['minhash', 'is', 'a', 'probabilistic', 'data', 'structure', 'for',
+    #         'estimating', 'the', 'similarity', 'between', 'datasets'])
+    index_.insert(2, ['minhash', 'is', 'a', 'probability', 'data', 'structure', 'for',
+                        'estimating', 'the', 'similarity', 'between', 'documents'])
+    index_.insert(3, ['minhash', 'is', 'probability', 'data', 'structure', 'for',
+                        'estimating', 'the', 'similarity', 'between', 'documents'])
+    print(index_.search(['minhash', 'is', 'a', 'probabilistic', 'data', 'structure', 'for',
+                         'estimating', 'the', 'similarity', 'between', 'datasets']))
