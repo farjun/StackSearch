@@ -9,8 +9,8 @@ class HParams:
     REGULARIZER_L2 = 0.1
     REGULARIZER_L1 = 0.1
     DATASET = 'titles'
-    TRAIN_DATASET_RANGE = (0, 1000)  # takes first DATASET_SIZE posts out of the DATASET
-    TEST_DATASET_RANGE = (1000, 1100)  # takes first DATASET_SIZE posts out of the DATASET
+    TRAIN_DATASET_RANGE = (0, 1000)
+    TEST_DATASET_RANGE = (1000, 1100)
     CROSS_ENTROPY_LOSS_LAMBDA = 1
     RECONSTRUCTION_LOSS_LAMBDA = 1
     filePath = path.join("data", "Posts.xml")
