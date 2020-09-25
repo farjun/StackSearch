@@ -62,7 +62,7 @@ class SimpleFCNAutoencoder(tf.keras.Model):
 
 
 if __name__ == '__main__':
-    model = SimpleCnnAutoencoder(HParams.getFeatureExtractorDim(), HParams.OUTPUT_DIM)
+    model = SimpleFCNAutoencoder(HParams.getFeatureExtractorDim(), HParams.OUTPUT_DIM)
     input = tf.keras.layers.Input(shape=(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractorDim(), 1))
     model(input)
     print(f"input:{(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractorDim(), 1)}")
