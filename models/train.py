@@ -13,9 +13,9 @@ cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 
 class TfWriter(object):
-    def __init__(self, runType = 'train'):
+    def __init__(self, runType='train', model_name="default"):
         now_as_string = datetime.now().strftime("%m_%d_%H_%M_%S")  # current date and time
-        writer_path = os.path.join("summary", runType, now_as_string)
+        writer_path = os.path.join("summary", now_as_string, runType, model_name)
         self.writer = tf.summary.create_file_writer(writer_path)
         print(f"writer_path {writer_path}")
 
@@ -130,8 +130,8 @@ def getTrainStepNotGan(model):
 
     return train_step, {"Gen": [reconstructionLosssReport, binaryLossReport, lossReport]}
 
-def getTestStep(model):
 
+def getTestStep(model):
     # derivetive by
     reconstructionLossObject = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
     binaryLossObject = tf.keras.losses.MeanSquaredError(name='autoencoder_reconstruction_loss')
@@ -158,7 +158,7 @@ def getTestStep(model):
 def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
                             save_result_per_epoch=5, restore_last=False, dataset_type: str = HParams.DATASET):
     ds = resolve_data_set(dataset_type, amount_to_drop=HParams.AMOUNT_TO_DROP, amount_to_swap=HParams.AMOUNT_TO_SWAP)
-    testDs = iter(resolve_data_set(dataset_type,trainDs=False).repeat(-1))
+    testDs = iter(resolve_data_set(dataset_type, trainDs=False).repeat(-1))
 
     nnHashEncoder = getNNHashEncoder(restore_last, skip_discriminator=True)
     if HParams.MODEL_MODE == 'GAN':
@@ -166,8 +166,8 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
     else:
         train_step, trainReportStuff = getTrainStepNotGan(nnHashEncoder.model)
     test_step, testReportStuff = getTestStep(nnHashEncoder.model)
-    trainWriter = TfWriter(runType = 'train')
-    testWriter = TfWriter( runType = 'test')
+    trainWriter = TfWriter(runType='train',model_name=f"AE_{HParams.MODEL_TYPE}_{HParams.TRAIN_DATASET_SIZE}")
+    testWriter = TfWriter(runType='test',model_name=f"AE_{HParams.MODEL_TYPE}_{HParams.TRAIN_DATASET_SIZE}")
 
     step = 0
     for epoch in tqdm(range(epochs_offset, epochs + epochs_offset), desc="train epochs"):
@@ -184,7 +184,6 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
             step += 1
 
         nnHashEncoder.save()
-
 
         for toReportMany in trainReportStuff.values():
             for toReport in toReportMany:

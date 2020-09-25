@@ -28,12 +28,12 @@ class SimpleFCNAutoencoder(tf.keras.Model):
 
         # encode
         self.flatten = tf.keras.layers.Flatten()
-        self.down_d1 = tf.keras.layers.Dense(100, activation='relu', **get_reg(HParams.USE_REGULARIZER))
-        self.down_d2 = tf.keras.layers.Dense(200, activation="relu", **get_reg(HParams.USE_REGULARIZER))
+        self.down_d1 = tf.keras.layers.Dense(900, activation='relu', **get_reg(HParams.USE_REGULARIZER))
+        self.down_d2 = tf.keras.layers.Dense(600, activation="relu", **get_reg(HParams.USE_REGULARIZER))
         self.down_d3 = tf.keras.layers.Dense(latent_space_dim, activation=HParams.LAST_ACTIVATION, **get_reg(HParams.USE_REGULARIZER))
 
         # decode
-        self.up_d1 = Dense(512, activation='relu', **get_reg(HParams.USE_REGULARIZER))
+        self.up_d1 = Dense(900, activation='relu', **get_reg(HParams.USE_REGULARIZER))
         self.up_d2 = Dense(self.inputshape[0] * self.inputshape[1] , activation='relu', **get_reg(HParams.USE_REGULARIZER))
         self.reshaper = Reshape((int(self.inputshape[0]), int(self.inputshape[1])))
 
@@ -62,7 +62,7 @@ class SimpleFCNAutoencoder(tf.keras.Model):
 
 
 if __name__ == '__main__':
-    model = SimpleCnnAutoencoder(HParams.getFeatureExtractorDim(), HParams.OUTPUT_DIM)
+    model = SimpleFCNAutoencoder(HParams.getFeatureExtractorDim(), HParams.OUTPUT_DIM)
     input = tf.keras.layers.Input(shape=(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractorDim(), 1))
     model(input)
     print(f"input:{(HParams.MAX_SENTENCE_DIM, HParams.getFeatureExtractorDim(), 1)}")
