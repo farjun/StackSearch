@@ -106,7 +106,9 @@ def temp_f(featureExtractor: FeatureExtractor, amount_to_drop, amount_to_swap, t
     output_shapes = (HParams.MAX_SENTENCE_DIM, featureExtractor.get_feature_dim(), 1)
     ds = tf.data.Dataset.from_generator(xmlParser.getTitleGenerator(featureExtractor=featureExtractor), (tf.float32),
                                         output_shapes=output_shapes)
-    cache_name = f"trainDs_{HParams.TRAIN_DATASET_SIZE}" if trainDs else "testDs"
+    dsRange = HParams.TRAIN_DATASET_RANGE if trainDs else HParams.TEST_DATASET_RANGE
+    dsSize = dsRange[1] - dsRange[0]
+    cache_name = f"trainDs_{dsSize}" if trainDs else f"testDs_{dsSize}"
     ds = ds.cache(cache_name)
     ds = ds.shuffle(100)
     ds = ds.batch(HParams.BATCH_SIZE) if trainDs else ds.batch(1) # Efficient
