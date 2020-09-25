@@ -52,7 +52,7 @@ class NNHashEncoder(object):
         return self.encode_batch(cleanQuery(words))
 
     def load(self, restore_last=True):
-        checkpoint_path = f"./checkpoints/train_{str(self.model)}"
+        checkpoint_path = f"./checkpoints/train_{str(self.model)}_train_size_{str(HParams.TRAIN_DATASET_RANGE)}"
         ckpt = tf.train.Checkpoint(model=self.model, optimizer=self.optimizer)
         ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 
@@ -73,11 +73,11 @@ class NNHashEncoder(object):
 def getNNHashEncoder(restore_last=True, skip_discriminator=False):
     featureExtractor = HParams.getFeatureExtractor()
     models = {
-        'DABA' : DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
-        'CNN' : SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
-        'FCN' : SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
+        'DABA': DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
+        'CNN': SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
+        'FCN': SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
     }
-    model = models[ HParams.MODEL_TYPE ]
+    model = models[HParams.MODEL_TYPE]
     if HParams.MODEL_MODE == 'GAN':
         discriminator = DabaDiscriminator()
     else:
