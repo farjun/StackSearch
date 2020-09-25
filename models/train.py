@@ -166,8 +166,9 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
     else:
         train_step, trainReportStuff = getTrainStepNotGan(nnHashEncoder.model)
     test_step, testReportStuff = getTestStep(nnHashEncoder.model)
-    trainWriter = TfWriter(runType='train',model_name=f"AE_{HParams.MODEL_TYPE}_{HParams.TRAIN_DATASET_SIZE}")
-    testWriter = TfWriter(runType='test',model_name=f"AE_{HParams.MODEL_TYPE}_{HParams.TRAIN_DATASET_SIZE}")
+    trainSize, testSize = HParams.TRAIN_DATASET_RANGE[1] - HParams.TRAIN_DATASET_RANGE[0],HParams.TEST_DATASET_RANGE[1] - HParams.TEST_DATASET_RANGE[0],
+    trainWriter = TfWriter(runType='train',model_name=f"AE_{HParams.MODEL_TYPE}_{trainSize}")
+    testWriter = TfWriter(runType='test',model_name=f"AE_{HParams.MODEL_TYPE}_{testSize}")
 
     step = 0
     for epoch in tqdm(range(epochs_offset, epochs + epochs_offset), desc="train epochs"):
