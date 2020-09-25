@@ -7,8 +7,10 @@ from gensim.models.doc2vec import TaggedDocument
 
 class XmlParser(object):
     def __init__(self, postsFilePath, CommentsFilePath = None, trainDs = True):
-        self.minNumOfSamples = 0 if trainDs else HParams.TRAIN_DATASET_SIZE
-        self.maxNumOfSamples = HParams.TRAIN_DATASET_SIZE if trainDs else HParams.TRAIN_DATASET_SIZE + HParams.TEST_DATASET_SIZE
+        datasetRange = HParams.TRAIN_DATASET_RANGE if trainDs else HParams.TEST_DATASET_RANGE
+        self.minNumOfSamples = datasetRange[0]
+        self.maxNumOfSamples = datasetRange[1]
+
         self.CommentsFilePath = CommentsFilePath
         self.postsFilePath = postsFilePath
 
