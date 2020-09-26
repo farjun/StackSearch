@@ -7,19 +7,20 @@ from models.YabaDabaDiscriminator import DabaDiscriminator
 from models.api import NNHashEncoder
 import random
 from pprint import pprint
+from xxhash import xxh32
 
-def autoencoder_vecs_save_meta(indexType=NewMinHashIndex, indexPath=None, calc_and_save_encodings=True ):
+
+def autoencoder_vecs_save_meta(indexType=NewMinHashIndex, indexPath=None):
     import io
     xmlParser = XmlParser(HParams.filePath)
     indexPath = indexPath or os.path.join(os.path.dirname(HParams.filePath), "index")
     index = indexType(indexPath, overwrite=True)
-    if calc_and_save_encodings:
-        hasher = getNNHashEncoder()
-        vecsTsvPath = os.path.join(os.path.dirname(HParams.filePath), "autoencoder-vecs.tsv")
-        metaTsvPath = os.path.join(os.path.dirname(HParams.filePath), "autoencoder-meta.tsv")
-        out_vecs = io.open(vecsTsvPath, 'w', encoding='utf-8')
-        out_meta = io.open(metaTsvPath, 'w', encoding='utf-8')
-        out_meta.write(f"ID\tTitle\tEncoding\n")
+    hasher = getNNHashEncoder()
+    vecsTsvPath = os.path.join(os.path.dirname(HParams.filePath), "autoencoder-vecs.tsv")
+    metaTsvPath = os.path.join(os.path.dirname(HParams.filePath), "autoencoder-meta.tsv")
+    out_vecs = io.open(vecsTsvPath, 'w', encoding='utf-8')
+    out_meta = io.open(metaTsvPath, 'w', encoding='utf-8')
+    out_meta.write(f"ID\tTitle\tEncoding\n")
     for post in tqdm.tqdm(xmlParser):
         wordsArr = post.toWordsArray()
         if len(wordsArr) == 0:
@@ -59,14 +60,16 @@ def W2V_embedding_projector():
 
 class ResultFactory(object):
 
-    def __init__(self, use_default_ds_hash=True, model_type=HParams.MODEL_TYPE, jaccard_threshold=0.5,
+    def __init__(self, use_default_ds_hash=False, hash_override=None, model_type=HParams.MODEL_TYPE, jaccard_threshold=0.5,
                  debug_hash_function=False, trained_weights_path=None):
         self.trained_weights_path = trained_weights_path
         self.jaccard_threshold = jaccard_threshold
         self.model_type = model_type
         self.encoder = self.get_hash_encoder()
         self.debug_hash_function = debug_hash_function
-        if use_default_ds_hash:
+        if hash_override:
+            self.hash = hash_override
+        elif use_default_ds_hash:
             self.hash = ResultFactory.default_datasketch_hash
         else:
             self.hash = self.trained_model_hash
@@ -114,6 +117,19 @@ class ResultFactory(object):
         self.index = NewMinHashIndex(index_path, overwrite=False)
         return self.index
 
+
+    @staticmethod
+    def xxhash(data):
+        """ xxhash library based hash function """
+        x = xxh32()
+        x.update(data)
+        return struct.unpack('<I', x.digest()[:4])[0]
+
+    @staticmethod
+    def sha3_hash(data):
+        """ sha_3 based hash """
+        return struct.unpack('<I', hashlib.sha3_224(data).digest()[:4])[0]
+
     @staticmethod
     def default_datasketch_hash(data):
         """ data sketch default hash for reference """
@@ -146,12 +162,14 @@ def fetch_post_by_id(id: str):
     return None
 
 
-def compare_searches(**named_indexes):
+def compare_searches(on_train_data=True, to_drop=1, **named_indexes):
     """
+    :param on_train_data: passed to XmlParser as trainDs
+    :param to_drop: amount of words to drop in second search
     :param named_indexes: passed minhash indexes
     :return: a dict in the format {title: {named_index: index_search(title)}}
     """
-    xml_parser = XmlParser(HParams.filePath, trainDs=True)
+    xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data)
     res = {}
     for post in xml_parser:
         words_arr = post.toWordsArray()
@@ -160,9 +178,11 @@ def compare_searches(**named_indexes):
 
         #queries
         title = ' '.join(words_arr)
-        words_arr.pop(random.randrange(len(words_arr)))
+        queries = [title]
+        for _ in range(to_drop):
+            words_arr.pop(random.randrange(len(words_arr)))
         changed_title = ' '.join(words_arr)
-        queries = [title, changed_title]
+        queries.append(changed_title)
 
         #calc search results and fill
         for i, arg_index in named_indexes.items():
@@ -177,21 +197,39 @@ def compare_searches(**named_indexes):
 
 if __name__ == '__main__':
     # usage examples
+
+    # with default datasketch index hash
     with_default_hash = ResultFactory(use_default_ds_hash=True,
                                       trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
     index_1 = with_default_hash.fill_and_save_index()
 
+    # with latest trained auto-encoder based hash
     with_our_hash = ResultFactory(use_default_ds_hash=False)
     index_2 = with_our_hash.fill_and_save_index()
 
+    # with trained autoencoder from trained_weights_path based hash and jaccard similarity threshold set to 0.8
     additional_index = ResultFactory(use_default_ds_hash=False, jaccard_threshold=0.8,
                                      trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
-    index_3 = additional_index.fill_and_save_index(on_train_data=True)
+    index_3 = additional_index.fill_and_save_index(on_train_data=True)  # note that on_train_data passed to trainDs in XmlParser
 
-    results_dict = compare_searches(default_hash_index=index_1, our_hash_index=index_2, additional_index=index_3)
+    # with xxhash library based hash and jaccard similarity threshold set to 0.5
+    xxhash_index = ResultFactory(hash_override=ResultFactory.xxhash, jaccard_threshold=0.5,
+                                 trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
+    index_4 = xxhash_index.fill_and_save_index(on_train_data=True)
+
+    # with sha3 based hash and jaccard similarity threshold set to 0.5
+    sha3_hash_index = ResultFactory(hash_override=ResultFactory.sha3_hash, jaccard_threshold=0.5,
+                                 trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
+    index_5 = sha3_hash_index.fill_and_save_index(on_train_data=True)
+
+    # compare_searches takes Minhash index objects as named arguments and runs searches from all indexes on
+    # either trained data or test. on each post the real title is queried along with a manipulated title with
+    # to_drop dropped words
+    results_dict = compare_searches(on_train_data=True, default_hash_index=index_1, our_hash_index=index_2, additional_index=index_3,
+                                    xxhash_index=index_4, sha3_hash_index=index_5)
 
     """
-     sampled output:
+     sampled output of compare_searches:
     -----------------
     Note how our hash in this case performed better with the manipulated title in this examples:
     'subsonic nhibernate': {'additional_index': ['6222', '6210', '1383', '9473'],
@@ -200,6 +238,18 @@ if __name__ == '__main__':
     'subsonic vs nhibernate': {'additional_index': ['1384'],
                             'default_hash_index': ['1384'],
                             'our_hash_index': ['1384']},
+                            
+    Also:
+     'using mstest': {'additional_index': ['1383', '9473', '6222', '6210'],
+                  'default_hash_index': [],
+                  'our_hash_index': ['1383', '9473', '6222', '6210'],
+                  'sha3_hash_index': [],
+                  'xxhash_index': []},
+     'using mstest cruisecontrolnet': {'additional_index': ['1314'],
+                                   'default_hash_index': ['1314'],
+                                   'our_hash_index': ['1314'],
+                                   'sha3_hash_index': ['1314'],
+                                   'xxhash_index': ['1314']},
     """
 
 
