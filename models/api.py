@@ -28,12 +28,13 @@ def toBinaryThreshold(arr, threshold=0.5):
 
 
 class NNHashEncoder(object):
-    def __init__(self, model, discriminator, featureExtractor, optimizer=tf.optimizers.Adam(), restore_last=False):
+    def __init__(self, model, discriminator, featureExtractor, optimizer=tf.optimizers.Adam(), restore_last=False,
+                 chkp_path=None):
         self.featureExtractor = featureExtractor
         self.optimizer = optimizer
         self.model = model
         self.discriminator = discriminator
-        self.ckpt_manager = self.load(restore_last)
+        self.ckpt_manager = self.load(restore_last, chkp_path)
 
     def encode_batch(self, words: List[str]):
         encode = self.encode_batch_no_mask(words)
@@ -51,13 +52,15 @@ class NNHashEncoder(object):
     def clean_and_encode_query(self, words: List[str]):
         return self.encode_batch(cleanQuery(words))
 
-    def load(self, restore_last=True):
-        checkpoint_path = f"./checkpoints/train_{str(self.model)}_train_size_{str(HParams.TRAIN_DATASET_RANGE)}"
+    def load(self, restore_last=True, chkp_path=None):
+        # checkpoint_path = chkp_path or f"./checkpoints/train_{str(self.model)}"
+        checkpoint_path = chkp_path or f"./checkpoints/train_{str(self.model)}_train_size_{str(HParams.TRAIN_DATASET_RANGE)}"
         ckpt = tf.train.Checkpoint(model=self.model, optimizer=self.optimizer)
         ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 
         # if a checkpoint exists, restore the latest checkpoint.
         if restore_last:
+            print(f'-- loading weights from {checkpoint_path}')
             save_path = ckpt_manager.latest_checkpoint or tf.train.latest_checkpoint(checkpoint_path)
             if save_path is not None:
                 ckpt.restore(save_path).expect_partial()

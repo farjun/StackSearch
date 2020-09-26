@@ -60,7 +60,8 @@ def W2V_embedding_projector():
 class ResultFactory(object):
 
     def __init__(self, use_default_ds_hash=True, model_type=HParams.MODEL_TYPE, jaccard_threshold=0.5,
-                 debug_hash_function=False):
+                 debug_hash_function=False, trained_weights_path=None):
+        self.trained_weights_path = trained_weights_path
         self.jaccard_threshold = jaccard_threshold
         self.model_type = model_type
         self.encoder = self.get_hash_encoder()
@@ -86,15 +87,16 @@ class ResultFactory(object):
         else:
             discriminator = None
 
-        return NNHashEncoder(model, discriminator, feature_extractor, restore_last=True)
+        return NNHashEncoder(model, discriminator, feature_extractor, restore_last=True,
+                             chkp_path=self.trained_weights_path)
 
-    def fill_and_save_index(self, index_path=None, jaccard_threshold=None):
+    def fill_and_save_index(self, index_path=None, jaccard_threshold=None, on_train_data=True):
         """
         :param index_path: optional index save path
         :param jaccard_threshold: Jaccard similarity thershold for the LSH Minhash queries
         :return:
         """
-        xml_parser = XmlParser(HParams.filePath)
+        xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data)
         index_path = index_path or self.index_path
         index = NewMinHashIndex(index_path, overwrite=True, threshold=jaccard_threshold or self.jaccard_threshold,
                                 hash_func=self.hash)
@@ -144,49 +146,61 @@ def fetch_post_by_id(id: str):
     return None
 
 
-def compare_searches(*args):
+def compare_searches(**named_indexes):
     """
-    :param args: passed minhash indexes
-    :return:
+    :param named_indexes: passed minhash indexes
+    :return: a dict in the format {title: {named_index: index_search(title)}}
     """
     xml_parser = XmlParser(HParams.filePath, trainDs=True)
     res = {}
-    for post in tqdm.tqdm(xml_parser):
+    for post in xml_parser:
         words_arr = post.toWordsArray()
         if len(words_arr) == 0:
             continue
-        print('-'*10)
-        print('TITLE:', post.title)
 
         #queries
         title = ' '.join(words_arr)
-        changed_title = ' '.join(words_arr.pop(random.randrange(len(words_arr))))
+        words_arr.pop(random.randrange(len(words_arr)))
+        changed_title = ' '.join(words_arr)
         queries = [title, changed_title]
 
         #calc search results and fill
-        for i, arg_index in enumerate(args):
+        for i, arg_index in named_indexes.items():
             for q in queries:
                 tmp = res.get(q, {})
                 tmp.update({i: arg_index.search(q)})
                 res[q] = tmp
 
-        pprint(res)
+    pprint(res)
+    return res
 
 
 if __name__ == '__main__':
-    # main(epochs=1, restore_last=True, progress_per_step=10)
-
-    with_default_hash = ResultFactory(use_default_ds_hash=True, debug_hash_function=True)
+    # usage examples
+    with_default_hash = ResultFactory(use_default_ds_hash=True,
+                                      trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
     index_1 = with_default_hash.fill_and_save_index()
 
     with_our_hash = ResultFactory(use_default_ds_hash=False)
     index_2 = with_our_hash.fill_and_save_index()
 
-    compare_searches(index_1, index_2)
+    additional_index = ResultFactory(use_default_ds_hash=False, jaccard_threshold=0.8,
+                                     trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
+    index_3 = additional_index.fill_and_save_index(on_train_data=True)
 
-    print(f"index 1 size: {index_1.size()}")
-    print(f"index 2 size: {index_2.size()}")
+    results_dict = compare_searches(default_hash_index=index_1, our_hash_index=index_2, additional_index=index_3)
 
+    """
+     sampled output:
+    -----------------
+    Note how our hash in this case performed better with the manipulated title in this examples:
+    'subsonic nhibernate': {'additional_index': ['6222', '6210', '1383', '9473'],
+                         'default_hash_index': [],
+                         'our_hash_index': ['6222', '6210', '1383', '9473']},
+    'subsonic vs nhibernate': {'additional_index': ['1384'],
+                            'default_hash_index': ['1384'],
+                            'our_hash_index': ['1384']},
+    """
 
 
 
