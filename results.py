@@ -7,7 +7,7 @@ from models.YabaDabaDiscriminator import DabaDiscriminator
 from models.api import NNHashEncoder
 
 
-def saveIndexAndEncodings(indexType=NewMinHashIndex, indexPath=None, calc_and_save_encodings=True ):
+def autoencoder_vecs_save_meta(indexType=NewMinHashIndex, indexPath=None, calc_and_save_encodings=True ):
     import io
     xmlParser = XmlParser(HParams.filePath)
     indexPath = indexPath or os.path.join(os.path.dirname(HParams.filePath), "index")
@@ -33,7 +33,7 @@ def saveIndexAndEncodings(indexType=NewMinHashIndex, indexPath=None, calc_and_sa
     return index
 
 
-def W2VembeddingProjector():
+def W2V_embedding_projector():
     import io
     from dataprocess.parser import XmlParser
     xmlParser = XmlParser(HParams.filePath)
@@ -54,8 +54,6 @@ def W2VembeddingProjector():
 
     out_vecs.close()
     out_meta.close()
-
-
 
 
 class ResultFactory(object):
@@ -103,8 +101,7 @@ class ResultFactory(object):
             words_arr = post.toWordsArray()
             if len(words_arr) == 0:
                 continue
-            index.insert(post.id, [' '.join(words_arr)])
-            # index.insert(post.id, wordsArr)
+            index.insert(post.id, ' '.join(words_arr))
         index.save()
         self.index = index
         return index
@@ -112,6 +109,7 @@ class ResultFactory(object):
     def load_index(self, index_path=None):
         index_path = index_path or self.index_path
         self.index = NewMinHashIndex(index_path, overwrite=False)
+        return index
 
     @staticmethod
     def default_datasketch_hash(data):
@@ -134,45 +132,15 @@ class ResultFactory(object):
 
 
 if __name__ == '__main__':
-    # generate_w2v()
-    # clear_summary()
+    # main(epochs=1, restore_last=True, progress_per_step=10)
+    factory = ResultFactory()
+    index = factory.fill_and_save_index()
+    print(f"index size: {index.size()}")
 
-    main(epochs=1, restore_last=True, progress_per_step=10)
-
-    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
-    # xmlParser = XmlParser(HParams.filePath)
-    # index = saveYabaDabaIndex()
-
-    index_ = saveYabaDabaNewIndex()
-
-    # index = MinHashIndex(indexPath)
-    # index_ = NewMinHashIndex(indexPath, overwrite=False)
-    print("index size: ".format(index_.size()))
+    index_loaded = ResultFactory().load_index()
+    print(f"loaded index size: {index_loaded.size()}")
 
 
 
-    # index_ = NewMinHashIndex(indexPath, overwrite=True, threshold=0.5, hash_func=trained_model_hash)
-    # #OMER
-    #
-    # index_.insert(4, [' '.join(cleanQuery("Determine a user's timezone"))])
-    # index_.insert(7, [' '.join(cleanQuery("Determine a user's timezone"))])
-    # index_.insert(8, [' '.join(cleanQuery("Determine a user's timezone"))])
-    # index_.insert(5, [' '.join(cleanQuery("Converting ARBG to RGB alpha blending"))])
-    # index_.insert(6, [' '.join(cleanQuery("Regex: To pull out a sub-string between two tags in a string"))])
 
-    # print(index_.search([' '.join(cleanQuery("Converting ARBG to RGB alpha "))]))
-    #
-    # index_.insert(10000, cleanQuery("Determine a user's timezone"))
-    # index_.insert(10004, cleanQuery("Determine a user's timezone"))
-    # index_.insert(10005, cleanQuery("Determine a user's timezone"))
-    # index_.insert(10085, cleanQuery("Converting ARBG to RGB alpha blending desfdsfdsdf  dsddfsddfdsd sdddfdsddfdf dsfsddd dsddf d"))
-    # index_.insert(10906, cleanQuery("Regex: To pull out a sub-string between two tags in a stri fdsfdsfdfdsdfdfsddfsdfdsdfdsfdsdf sddfsddfds dsddfdddsd  sddfddsdfdsd dsdf dsdf ng"))
-
-
-    print('search res1: ', index_.search([' '.join(cleanQuery("Using Parameters in MS Reporting Services (SQL Server 2008) against an ODBC data source"))]))
-    print('search res11: ', index_.search([' '.join(cleanQuery("against an ODBC data source"))]))
-    print('search res12: ', index_.search([' '.join(cleanQuery("Using Parameters in MS Reporting Services"))]))
-    print('search res2: ', index_.search([' '.join(cleanQuery("Using  in MS Reporting Services"))]))
-    print('search res3: ', index_.search([' '.join(cleanQuery("Using Parameters in MS  Services"))]))
-    # print('search res2: ', index_.search(cleanQuery("Determine a user's timezone")))
 

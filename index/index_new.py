@@ -1,7 +1,7 @@
 import os
 import pickle
 from datasketch import MinHash, MinHashLSH
-from typing import List
+from typing import List, Union
 
 from hparams import HParams
 import json
@@ -51,7 +51,9 @@ class MinHashIndex(object):
             m.update(word.encode('utf8'))
         return m
 
-    def insert(self, post_id, text: List[str]):
+    def insert(self, post_id, text: Union[List[str], str]):
+        if isinstance(text, str):
+            text = [text]
         m = self.sentence_minhash(text)
         self.lsh.insert(post_id, m)
         self.config['indexSize'] += 1
