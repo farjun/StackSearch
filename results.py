@@ -162,7 +162,7 @@ def fetch_post_by_id(id: str):
     return None
 
 
-def compare_searches(on_train_data=True, to_drop=1, **named_indexes):
+def compare_searches(search_res_include_titles=False, on_train_data=True, to_drop=1, **named_indexes):
     """
     :param on_train_data: passed to XmlParser as trainDs
     :param to_drop: amount of words to drop in second search
@@ -188,7 +188,10 @@ def compare_searches(on_train_data=True, to_drop=1, **named_indexes):
         for i, arg_index in named_indexes.items():
             for q in queries:
                 tmp = res.get(q, {})
-                tmp.update({i: arg_index.search(q)})
+                if not search_res_include_titles:
+                    tmp.update({i: arg_index.search(q)})
+                else:
+                    tmp.update({i: [(id, fetch_post_by_id(id).title) for id in arg_index.search(q)]})
                 res[q] = tmp
 
     pprint(res)
@@ -225,8 +228,12 @@ if __name__ == '__main__':
     # compare_searches takes Minhash index objects as named arguments and runs searches from all indexes on
     # either trained data or test. on each post the real title is queried along with a manipulated title with
     # to_drop dropped words
-    results_dict = compare_searches(on_train_data=True, default_hash_index=index_1, our_hash_index=index_2, additional_index=index_3,
+    results_dict = compare_searches(search_res_include_titles=False, on_train_data=True, default_hash_index=index_1, our_hash_index=index_2, additional_index=index_3,
                                     xxhash_index=index_4, sha3_hash_index=index_5)
+
+    # To print also the titles corresponding to returned ids in result
+    # results_dict = compare_searches(search_res_include_titles=True, on_train_data=True, default_hash_index=index_1,
+    #                                 our_hash_index=index_2)
 
     """
      sampled output of compare_searches:
