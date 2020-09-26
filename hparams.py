@@ -9,7 +9,7 @@ class HParams:
     REGULARIZER_L2 = 0.1
     REGULARIZER_L1 = 0.1
     DATASET = 'titles'
-    TRAIN_DATASET_RANGE = (0, 50000)
+    TRAIN_DATASET_RANGE = (0, 100000)
     TEST_DATASET_RANGE = (100000, 101000)
     CROSS_ENTROPY_LOSS_LAMBDA = 1
     RECONSTRUCTION_LOSS_LAMBDA = 1
@@ -21,7 +21,7 @@ class HParams:
     OUTPUT_DIM = 1
     CKPT_MAX_TO_KEEP = 2
     MAX_SENTENCE_DIM = 16
-    LAST_ACTIVATION = 'sigmoid'
+    LAST_ACTIVATION = None
 
     def getCeckpointPath(self):
         return str(self.OUTPUT_DIM)
