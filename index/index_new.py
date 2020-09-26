@@ -44,9 +44,10 @@ class MinHashIndex(object):
             except EOFError:
                 print("Warning, Config was not able to load from an empty config file")
 
-    def sentence_minhash(self, text: List[str]):
+    def sentence_minhash(self, text: Union[List[str], str]):
         m = MinHash(num_perm=self.num_perm) if self._hash_func is None else MinHash(num_perm=self.num_perm,
                                                                                     hashfunc=self._hash_func)
+        text = [text] if isinstance(text, str) else text
         for word in text:
             m.update(word.encode('utf8'))
         return m
@@ -58,10 +59,10 @@ class MinHashIndex(object):
         self.lsh.insert(post_id, m)
         self.config['indexSize'] += 1
 
-    def search(self, text: List[str], top_k=10):
+    def search(self, text: Union[List[str], str], result_limit=10):
         m = self.sentence_minhash(text)
         result = self.lsh.query(m)
-        return result[:top_k]
+        return result[:result_limit]
 
     def size(self):
         return self.config['indexSize']
