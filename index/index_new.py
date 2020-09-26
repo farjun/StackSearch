@@ -45,8 +45,8 @@ class MinHashIndex(object):
                 print("Warning, Config was not able to load from an empty config file")
 
     def sentence_minhash(self, text: List[str]):
-        m = MinHash(num_perm=self.num_perm) if self._hash_func is None else MinHash(num_perm=self.num_perm
-                                                                                    , hashfunc=self._hash_func)
+        m = MinHash(num_perm=self.num_perm) if self._hash_func is None else MinHash(num_perm=self.num_perm,
+                                                                                    hashfunc=self._hash_func)
         for word in text:
             m.update(word.encode('utf8'))
         return m
