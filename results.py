@@ -92,7 +92,7 @@ class ResultFactory(object):
         index_path = index_path or self.index_path
         index = NewMinHashIndex(index_path, overwrite=True, threshold=jaccard_threshold or self.jaccard_threshold,
                                 hash_func=self.hash)
-        for post in tqdm.tqdm(xml_parser):
+        for post in tqdm.tqdm(xml_parser, total=parse_range[1] - parse_range[0]):
             words_arr = post.toWordsArray()
             if len(words_arr) == 0:
                 continue
@@ -150,7 +150,8 @@ def fetch_post_by_id(id: str):
     return None
 
 
-def compare_searches(search_res_include_titles=False, on_train_data=True, to_drop=1, **named_indexes):
+def compare_searches(search_res_include_titles=False, on_train_data=True, to_drop=1, parseRange=HParams.PARSE_RANGE,
+                     **named_indexes):
     """
     :param search_res_include_titles: if True, the result of search will include also the corresponding title.
     :param on_train_data: passed to XmlParser as trainDs
@@ -158,9 +159,9 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
     :param named_indexes: passed minhash indexes
     :return: a dict in the format {title: {named_index: index_search(title)}}
     """
-    xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=HParams.PARSE_RANGE)
+    xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parseRange)
     res = {}
-    for post in xml_parser:
+    for post in tqdm.tqdm(xml_parser, total=parseRange[1] - parseRange[0], desc="xml_parser"):
         words_arr = post.toWordsArray()
         if len(words_arr) == 0:
             continue
@@ -174,13 +175,13 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
         queries.append(changed_title)
 
         # calc search results and fill
-        for i, arg_index in named_indexes.items():
+        for index_name, arg_index in named_indexes.items():
             for q in queries:
                 tmp = res.get(q, {})
                 if not search_res_include_titles:
-                    tmp.update({i: arg_index.search(q)})
+                    tmp.update({index_name: arg_index.search(q)})
                 else:
-                    tmp.update({i: [(id, fetch_post_by_id(id).title) for id in arg_index.search(q)]})
+                    tmp.update({index_name: [(id, fetch_post_by_id(id).title) for id in arg_index.search(q)]})
                 res[q] = tmp
 
     pprint(res)
