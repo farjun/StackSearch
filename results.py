@@ -36,10 +36,10 @@ def W2V_embedding_projector():
 
 class ResultFactory(object):
 
-    def __init__(self, use_default_ds_hash=False, hash_override=None, model_type=HParams.MODEL_TYPE,
-                 jaccard_threshold=0.5,
-                 debug_hash_function=False, train_range=None):
-        self.train_range = train_range if train_range else HParams.TRAIN_DATASET_RANGE
+    def __init__(self, use_default_ds_hash=False, hash_override=None,
+                 model_type=HParams.MODEL_TYPE, train_range=HParams.TRAIN_DATASET_RANGE,
+                 jaccard_threshold=0.5, debug_hash_function=False):
+        self.train_range = train_range
         self.jaccard_threshold = jaccard_threshold
         self.model_type = model_type
         self.encoder = self.get_hash_encoder()
