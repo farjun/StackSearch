@@ -174,13 +174,13 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
         queries.append(changed_title)
 
         # calc search results and fill
-        for i, arg_index in named_indexes.items():
-            for q in queries:
+        for index_name, arg_index in named_indexes.items():
+            for q in tqdm.tqdm(queries,desc=f"indexing:{index_name}"):
                 tmp = res.get(q, {})
                 if not search_res_include_titles:
-                    tmp.update({i: arg_index.search(q)})
+                    tmp.update({index_name: arg_index.search(q)})
                 else:
-                    tmp.update({i: [(id, fetch_post_by_id(id).title) for id in arg_index.search(q)]})
+                    tmp.update({index_name: [(id, fetch_post_by_id(id).title) for id in arg_index.search(q)]})
                 res[q] = tmp
 
     pprint(res)
