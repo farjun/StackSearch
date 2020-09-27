@@ -1,5 +1,7 @@
 import os
 from datetime import datetime
+import random
+
 import numpy as np
 from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
@@ -185,7 +187,8 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
             step += 1
 
         nnHashEncoder.save()
-
+        HParams.AMOUNT_TO_SWAP = random.randint(1,HParams.MAX_AMOUNT_TO_SWAP)
+        HParams.AMOUNT_TO_DROP = random.randint(1,HParams.MAX_AMOUNT_TO_DROP)
         for toReportMany in trainReportStuff.values():
             for toReport in toReportMany:
                 toReport.reset_states()

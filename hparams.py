@@ -15,7 +15,9 @@ class HParams:
     RECONSTRUCTION_LOSS_LAMBDA = 1
     filePath = path.join("data", "Posts.xml")
     AMOUNT_TO_DROP = 3
+    MAX_AMOUNT_TO_DROP = 3
     AMOUNT_TO_SWAP = 3
+    MAX_AMOUNT_TO_SWAP = 3
     embeddingFilePath = path.join("checkpoints", "word2vec")
     BATCH_SIZE = 4
     OUTPUT_DIM = 1
