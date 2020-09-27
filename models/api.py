@@ -28,12 +28,17 @@ def toBinaryThreshold(arr, threshold=0.5):
 
 
 class NNHashEncoder(object):
+    @staticmethod
+    def get_train_path(model, train_range):
+        return f"./checkpoints/train_{str(model)}_train_size_{str(train_range)}"
+
     def __init__(self, model, discriminator, featureExtractor, optimizer=tf.optimizers.Adam(), restore_last=False,
                  chkp_path=None):
         self.featureExtractor = featureExtractor
         self.optimizer = optimizer
         self.model = model
         self.discriminator = discriminator
+        self.chkp_path = chkp_path
         self.ckpt_manager = self.load(restore_last, chkp_path)
 
     def encode_batch(self, words: List[str]):
@@ -54,7 +59,7 @@ class NNHashEncoder(object):
 
     def load(self, restore_last=True, chkp_path=None):
         # checkpoint_path = chkp_path or f"./checkpoints/train_{str(self.model)}"
-        checkpoint_path = chkp_path or f"./checkpoints/train_{str(self.model)}_train_size_{str(HParams.TRAIN_DATASET_RANGE)}"
+        checkpoint_path = chkp_path or NNHashEncoder.get_train_path(self.model, HParams.TRAIN_DATASET_RANGE)
         ckpt = tf.train.Checkpoint(model=self.model, optimizer=self.optimizer)
         ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 
@@ -74,15 +79,22 @@ class NNHashEncoder(object):
 
 
 def getNNHashEncoder(restore_last=True, skip_discriminator=False):
+    return getNNHashEncoder_New(restore_last=restore_last,
+                                model_type=HParams.MODEL_TYPE,
+                                train_range=HParams.TRAIN_DATASET_RANGE)
+
+
+def getNNHashEncoder_New(restore_last=True, model_type=HParams.MODEL_TYPE, train_range=HParams.TRAIN_DATASET_RANGE):
     featureExtractor = HParams.getFeatureExtractor()
     models = {
-        'DABA': DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
-        'CNN': SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
-        'FCN': SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
+        'DABA': lambda: DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
+        'CNN': lambda: SimpleCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
+        'FCN': lambda: SimpleFCNAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
     }
-    model = models[HParams.MODEL_TYPE]
+    model = models[model_type]()
     if HParams.MODEL_MODE == 'GAN':
         discriminator = DabaDiscriminator()
     else:
         discriminator = None
-    return NNHashEncoder(model, discriminator, featureExtractor, restore_last=restore_last)
+    return NNHashEncoder(model, discriminator, featureExtractor, restore_last=restore_last,
+                         chkp_path=NNHashEncoder.get_train_path(model, train_range))

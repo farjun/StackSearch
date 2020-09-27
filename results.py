@@ -5,10 +5,10 @@ from models.SimpleCnnAutoencoder import SimpleCnnAutoencoder
 from models.SimpleFCNAutoencoder import SimpleFCNAutoencoder
 from models.YabaDabaDiscriminator import DabaDiscriminator
 from models.api import NNHashEncoder
+import models
 import random
 from pprint import pprint
 from xxhash import xxh32
-
 
 
 def W2V_embedding_projector():
@@ -22,11 +22,11 @@ def W2V_embedding_projector():
     featureExtractor = HParams.getFeatureExtractor()
     out_meta.write(f"sentence\tencoding\tlength\n")
     xmlParser = XmlParser(HParams.filePath)
-    sentences=(xmlParser.getSentsGenerator())()
+    sentences = (xmlParser.getSentsGenerator())()
     for sentence in sentences:
         clean = cleanQuery(sentence)
-        batch_encoding=featureExtractor.get_feature_batch(clean)
-        encoding=batch_encoding.reshape((16*200,))
+        batch_encoding = featureExtractor.get_feature_batch(clean)
+        encoding = batch_encoding.reshape((16 * 200,))
         out_meta.write(f"{sentence}\t{encoding}\t{len(clean)}\n")
         out_vecs.write('\t'.join([str(x) for x in encoding]) + "\n")
 
@@ -36,9 +36,10 @@ def W2V_embedding_projector():
 
 class ResultFactory(object):
 
-    def __init__(self, use_default_ds_hash=False, hash_override=None, model_type=HParams.MODEL_TYPE, jaccard_threshold=0.5,
-                 debug_hash_function=False, trained_weights_path=None):
-        self.trained_weights_path = trained_weights_path
+    def __init__(self, use_default_ds_hash=False, hash_override=None, model_type=HParams.MODEL_TYPE,
+                 jaccard_threshold=0.5,
+                 debug_hash_function=False, train_range=None):
+        self.train_range = train_range if train_range else HParams.TRAIN_DATASET_RANGE
         self.jaccard_threshold = jaccard_threshold
         self.model_type = model_type
         self.encoder = self.get_hash_encoder()
@@ -54,20 +55,9 @@ class ResultFactory(object):
         self.index = None
 
     def get_hash_encoder(self):
-        feature_extractor = HParams.getFeatureExtractor()
-        models = {
-            'DABA': DabaCnnAutoencoder(feature_extractor.get_feature_dim(), HParams.OUTPUT_DIM),
-            'CNN': SimpleCnnAutoencoder(feature_extractor.get_feature_dim(), HParams.OUTPUT_DIM),
-            'FCN': SimpleFCNAutoencoder(feature_extractor.get_feature_dim(), HParams.OUTPUT_DIM),
-        }
-        model = models[self.model_type]
-        if HParams.MODEL_MODE == 'GAN':
-            discriminator = DabaDiscriminator()
-        else:
-            discriminator = None
-
-        return NNHashEncoder(model, discriminator, feature_extractor, restore_last=True,
-                             chkp_path=self.trained_weights_path)
+        return models.api.getNNHashEncoder_New(
+            restore_last=True, model_type=self.model_type, train_range=self.train_range
+        )
 
     def autoencoder_vecs_save_meta(self, on_train_data=True):
         import io
@@ -111,7 +101,6 @@ class ResultFactory(object):
         index_path = index_path or self.index_path
         self.index = NewMinHashIndex(index_path, overwrite=False)
         return self.index
-
 
     @staticmethod
     def xxhash(data):
@@ -172,7 +161,7 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
         if len(words_arr) == 0:
             continue
 
-        #queries
+        # queries
         title = ' '.join(words_arr)
         queries = [title]
         for _ in range(to_drop):
@@ -180,7 +169,7 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
         changed_title = ' '.join(words_arr)
         queries.append(changed_title)
 
-        #calc search results and fill
+        # calc search results and fill
         for i, arg_index in named_indexes.items():
             for q in queries:
                 tmp = res.get(q, {})
@@ -209,7 +198,8 @@ if __name__ == '__main__':
     # with trained autoencoder from trained_weights_path based hash and jaccard similarity threshold set to 0.8
     additional_index = ResultFactory(use_default_ds_hash=False, jaccard_threshold=0.8,
                                      trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
-    index_3 = additional_index.fill_and_save_index(on_train_data=True)  # note that on_train_data passed to trainDs in XmlParser
+    index_3 = additional_index.fill_and_save_index(
+        on_train_data=True)  # note that on_train_data passed to trainDs in XmlParser
 
     # with xxhash library based hash and jaccard similarity threshold set to 0.5
     xxhash_index = ResultFactory(hash_override=ResultFactory.xxhash, jaccard_threshold=0.5,
@@ -218,13 +208,14 @@ if __name__ == '__main__':
 
     # with sha3 based hash and jaccard similarity threshold set to 0.5
     sha3_hash_index = ResultFactory(hash_override=ResultFactory.sha3_hash, jaccard_threshold=0.5,
-                                 trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
+                                    trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
     index_5 = sha3_hash_index.fill_and_save_index(on_train_data=True)
 
     # compare_searches takes Minhash index objects as named arguments and runs searches from all indexes on
     # either trained data or test. on each post the real title is queried along with a manipulated title with
     # to_drop dropped words
-    results_dict = compare_searches(search_res_include_titles=False, on_train_data=True, default_hash_index=index_1, our_hash_index=index_2, additional_index=index_3,
+    results_dict = compare_searches(search_res_include_titles=False, on_train_data=True, default_hash_index=index_1,
+                                    our_hash_index=index_2, additional_index=index_3,
                                     xxhash_index=index_4, sha3_hash_index=index_5)
 
     # To print also the titles corresponding to returned ids in result, note that its inefficient
@@ -260,10 +251,3 @@ if __name__ == '__main__':
                                    'sha3_hash_index': ['1314'],
                                    'xxhash_index': ['1314']},
     """
-
-
-
-
-
-
-
