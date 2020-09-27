@@ -85,13 +85,12 @@ def getNNHashEncoder(restore_last=True, skip_discriminator=False):
                                 allow_reuse=False)
 
 
-LAST_NNHashEncoder = None
-LAST_CHKP_PATH = None
+LAST_NNHashEncoders = {}
 
 
 def reuse(chkp_path: str):
-    if chkp_path is not None and LAST_CHKP_PATH == chkp_path:
-        return LAST_NNHashEncoder
+    if chkp_path is not None and chkp_path in LAST_NNHashEncoders:
+        return LAST_NNHashEncoders[chkp_path]
     return None
 
 
@@ -115,7 +114,6 @@ def getNNHashEncoder_New(restore_last=True, model_type=HParams.MODEL_TYPE, train
         return reuse_encoder
     else:
         encoder = NNHashEncoder(model, discriminator, featureExtractor, restore_last=restore_last, chkp_path=train_path)
-        global LAST_NNHashEncoder, LAST_CHKP_PATH
-        LAST_NNHashEncoder = encoder
-        LAST_CHKP_PATH = train_path
+        global LAST_NNHashEncoders
+        LAST_NNHashEncoders[train_path] = encoder
         return encoder
