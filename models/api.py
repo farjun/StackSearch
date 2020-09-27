@@ -81,7 +81,8 @@ class NNHashEncoder(object):
 def getNNHashEncoder(restore_last=True, skip_discriminator=False):
     return getNNHashEncoder_New(restore_last=restore_last,
                                 model_type=HParams.MODEL_TYPE,
-                                train_range=HParams.TRAIN_DATASET_RANGE)
+                                train_range=HParams.TRAIN_DATASET_RANGE,
+                                allow_reuse=False)
 
 
 LAST_NNHashEncoder = None
@@ -94,7 +95,8 @@ def reuse(chkp_path: str):
     return None
 
 
-def getNNHashEncoder_New(restore_last=True, model_type=HParams.MODEL_TYPE, train_range=HParams.TRAIN_DATASET_RANGE):
+def getNNHashEncoder_New(restore_last=True, model_type=HParams.MODEL_TYPE, train_range=HParams.TRAIN_DATASET_RANGE,
+                         allow_reuse=True):
     featureExtractor = HParams.getFeatureExtractor()
     models = {
         'DABA': lambda: DabaCnnAutoencoder(featureExtractor.get_feature_dim(), HParams.OUTPUT_DIM),
@@ -108,7 +110,7 @@ def getNNHashEncoder_New(restore_last=True, model_type=HParams.MODEL_TYPE, train
         discriminator = None
     train_path = NNHashEncoder.get_train_path(model, train_range)
     reuse_encoder = reuse(train_path)
-    if reuse_encoder:
+    if allow_reuse and reuse_encoder:
         print(f"Reuse:{train_path}")
         return reuse_encoder
     else:
