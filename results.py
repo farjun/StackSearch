@@ -80,13 +80,15 @@ class ResultFactory(object):
         out_vecs.close()
         out_meta.close()
 
-    def fill_and_save_index(self, index_path=None, jaccard_threshold=None, on_train_data=True):
+    def fill_and_save_index(self, index_path=None, jaccard_threshold=None, on_train_data=True,
+                            parse_range=HParams.PARSE_RANGE):
         """
+        :param parse_range: passed to the xml parser
         :param index_path: optional index save path
         :param jaccard_threshold: Jaccard similarity thershold for the LSH Minhash queries
         :return:
         """
-        xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data)
+        xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parse_range)
         index_path = index_path or self.index_path
         index = NewMinHashIndex(index_path, overwrite=True, threshold=jaccard_threshold or self.jaccard_threshold,
                                 hash_func=self.hash)
@@ -95,7 +97,7 @@ class ResultFactory(object):
             if len(words_arr) == 0:
                 continue
             index.insert(post.id, ' '.join(words_arr))
-        index.save()
+        # index.save()
         self.index = index
         return index
 
@@ -137,11 +139,11 @@ class ResultFactory(object):
 
 
 def fetch_post_by_id(id: str):
-    xml_parser_train = XmlParser(HParams.filePath, trainDs=True)
+    xml_parser_train = XmlParser(HParams.filePath, trainDs=True, parseRange=HParams.PARSE_RANGE)
     post = [_ for _ in xml_parser_train if _.id == id]
     if len(post):
         return post[0]
-    xml_parser_test = XmlParser(HParams.filePath, trainDs=False)
+    xml_parser_test = XmlParser(HParams.filePath, trainDs=False, parseRange=HParams.PARSE_RANGE)
     post = [_ for _ in xml_parser_test if _.id == id]
     if len(post):
         return post[0]
@@ -156,7 +158,7 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
     :param named_indexes: passed minhash indexes
     :return: a dict in the format {title: {named_index: index_search(title)}}
     """
-    xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data)
+    xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=HParams.PARSE_RANGE)
     res = {}
     for post in xml_parser:
         words_arr = post.toWordsArray()
@@ -222,9 +224,9 @@ if __name__ == '__main__':
     # results_dict = compare_searches(search_res_include_titles=True, on_train_data=True, default_hash_index=index_1,
     #                                 our_hash_index=index_2)
 
-    HParams.OUTPUT_DIM = 4
-    four_dim_vecs_index = ResultFactory(use_default_ds_hash=False)
-    four_dim_vecs_index.autoencoder_vecs_save_meta()
+    # HParams.OUTPUT_DIM = 4
+    # four_dim_vecs_index = ResultFactory(use_default_ds_hash=False)
+    # four_dim_vecs_index.autoencoder_vecs_save_meta()
 
     """
      sampled output of compare_searches:
