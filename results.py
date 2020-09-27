@@ -92,7 +92,7 @@ class ResultFactory(object):
         index_path = index_path or self.index_path
         index = NewMinHashIndex(index_path, overwrite=True, threshold=jaccard_threshold or self.jaccard_threshold,
                                 hash_func=self.hash)
-        for post in tqdm.tqdm(xml_parser):
+        for post in tqdm.tqdm(xml_parser, total=parse_range[1] - parse_range[0]):
             words_arr = post.toWordsArray()
             if len(words_arr) == 0:
                 continue
