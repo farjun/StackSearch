@@ -187,8 +187,8 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
 
 if __name__ == '__main__':
     # usage examples
-    HParams.MODEL_TYPE = "CNN"
-    HParams.TRAIN_DATASET_RANGE = (0, 1000)
+    # HParams.MODEL_TYPE = "CNN"
+    # HParams.TRAIN_DATASET_RANGE = (0, 1000)
     # HParams.MODEL_TYPE = "FCN"
     # with default datasketch index hash
     with_default_hash = ResultFactory(use_default_ds_hash=True)
