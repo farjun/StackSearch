@@ -123,7 +123,7 @@ class ResultFactory(object):
         """ 
         :param data: bytes to calculate hash on
         :return: hash using trained auto-encoder
-        """""
+        """
         encoded_vecs = self.encoder.encode_batch(str(data).split())
         encoded_vecs_bytes = encoded_vecs.tobytes()
         if self.debug_hash_function:

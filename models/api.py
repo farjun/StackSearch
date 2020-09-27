@@ -38,7 +38,7 @@ class NNHashEncoder(object):
         self.optimizer = optimizer
         self.model = model
         self.discriminator = discriminator
-        self.chkp_path = chkp_path
+        self.chkp_path = chkp_path or NNHashEncoder.get_train_path(self.model, HParams.TRAIN_DATASET_RANGE)
         self.ckpt_manager = self.load(restore_last, chkp_path)
 
     def encode_batch(self, words: List[str]):
@@ -59,7 +59,7 @@ class NNHashEncoder(object):
 
     def load(self, restore_last=True, chkp_path=None):
         # checkpoint_path = chkp_path or f"./checkpoints/train_{str(self.model)}"
-        checkpoint_path = chkp_path or NNHashEncoder.get_train_path(self.model, HParams.TRAIN_DATASET_RANGE)
+        checkpoint_path = chkp_path
         ckpt = tf.train.Checkpoint(model=self.model, optimizer=self.optimizer)
         ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 
@@ -84,6 +84,16 @@ def getNNHashEncoder(restore_last=True, skip_discriminator=False):
                                 train_range=HParams.TRAIN_DATASET_RANGE)
 
 
+LAST_NNHashEncoder = None
+LAST_CHKP_PATH = None
+
+
+def reuse(chkp_path: str):
+    if chkp_path is not None and LAST_CHKP_PATH == chkp_path:
+        return LAST_NNHashEncoder
+    return None
+
+
 def getNNHashEncoder_New(restore_last=True, model_type=HParams.MODEL_TYPE, train_range=HParams.TRAIN_DATASET_RANGE):
     featureExtractor = HParams.getFeatureExtractor()
     models = {
@@ -96,5 +106,14 @@ def getNNHashEncoder_New(restore_last=True, model_type=HParams.MODEL_TYPE, train
         discriminator = DabaDiscriminator()
     else:
         discriminator = None
-    return NNHashEncoder(model, discriminator, featureExtractor, restore_last=restore_last,
-                         chkp_path=NNHashEncoder.get_train_path(model, train_range))
+    train_path = NNHashEncoder.get_train_path(model, train_range)
+    reuse_encoder = reuse(train_path)
+    if reuse_encoder:
+        print(f"Reuse:{train_path}")
+        return reuse_encoder
+    else:
+        encoder = NNHashEncoder(model, discriminator, featureExtractor, restore_last=restore_last, chkp_path=train_path)
+        global LAST_NNHashEncoder, LAST_CHKP_PATH
+        LAST_NNHashEncoder = encoder
+        LAST_CHKP_PATH = train_path
+        return encoder
