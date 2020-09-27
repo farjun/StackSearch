@@ -187,8 +187,7 @@ if __name__ == '__main__':
     # usage examples
 
     # with default datasketch index hash
-    with_default_hash = ResultFactory(use_default_ds_hash=True,
-                                      trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
+    with_default_hash = ResultFactory(use_default_ds_hash=True)
     index_1 = with_default_hash.fill_and_save_index()
 
     # with latest trained auto-encoder based hash
@@ -196,19 +195,16 @@ if __name__ == '__main__':
     index_2 = with_our_hash.fill_and_save_index()
 
     # with trained autoencoder from trained_weights_path based hash and jaccard similarity threshold set to 0.8
-    additional_index = ResultFactory(use_default_ds_hash=False, jaccard_threshold=0.8,
-                                     trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
+    additional_index = ResultFactory(use_default_ds_hash=False, jaccard_threshold=0.8)
     index_3 = additional_index.fill_and_save_index(
         on_train_data=True)  # note that on_train_data passed to trainDs in XmlParser
 
     # with xxhash library based hash and jaccard similarity threshold set to 0.5
-    xxhash_index = ResultFactory(hash_override=ResultFactory.xxhash, jaccard_threshold=0.5,
-                                 trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
+    xxhash_index = ResultFactory(hash_override=ResultFactory.xxhash, jaccard_threshold=0.5)
     index_4 = xxhash_index.fill_and_save_index(on_train_data=True)
 
     # with sha3 based hash and jaccard similarity threshold set to 0.5
-    sha3_hash_index = ResultFactory(hash_override=ResultFactory.sha3_hash, jaccard_threshold=0.5,
-                                    trained_weights_path="checkpoints/train_SimpleCnnAutoencoder_1")
+    sha3_hash_index = ResultFactory(hash_override=ResultFactory.sha3_hash, jaccard_threshold=0.5)
     index_5 = sha3_hash_index.fill_and_save_index(on_train_data=True)
 
     # compare_searches takes Minhash index objects as named arguments and runs searches from all indexes on
@@ -223,9 +219,7 @@ if __name__ == '__main__':
     #                                 our_hash_index=index_2)
 
     HParams.OUTPUT_DIM = 4
-    four_dim_vecs_index = ResultFactory(use_default_ds_hash=False,
-                                        trained_weights_path="checkpoints/train_SimpleFCNAutoencoder_4_train_size_(0, "
-                                                             "100)")
+    four_dim_vecs_index = ResultFactory(use_default_ds_hash=False)
     four_dim_vecs_index.autoencoder_vecs_save_meta()
 
     """
