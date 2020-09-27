@@ -36,7 +36,8 @@ class SimpleCnnAutoencoder(tf.keras.Model):
                                               activation='relu', **get_reg(HParams.USE_REGULARIZER))
         self.down_c2 = tf.keras.layers.Conv2D(200, kernel_size=(5, 1), strides=2, **get_reg(HParams.USE_REGULARIZER))
         self.flatten = tf.keras.layers.Flatten()
-        self.down_d1 = tf.keras.layers.Dense(latent_space_dim, activation="sigmoid", **get_reg(HParams.USE_REGULARIZER))
+        self.down_d1 = tf.keras.layers.Dense(latent_space_dim, activation=HParams.LAST_ACTIVATION,
+                                             **get_reg(HParams.USE_REGULARIZER))
 
         # decode
         self.up_d1 = Dense(512, activation='relu', **get_reg(HParams.USE_REGULARIZER))
