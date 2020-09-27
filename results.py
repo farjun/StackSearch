@@ -150,7 +150,8 @@ def fetch_post_by_id(id: str):
     return None
 
 
-def compare_searches(search_res_include_titles=False, on_train_data=True, to_drop=1, **named_indexes):
+def compare_searches(search_res_include_titles=False, on_train_data=True, to_drop=1, parseRange=HParams.PARSE_RANGE,
+                     **named_indexes):
     """
     :param search_res_include_titles: if True, the result of search will include also the corresponding title.
     :param on_train_data: passed to XmlParser as trainDs
@@ -158,7 +159,7 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
     :param named_indexes: passed minhash indexes
     :return: a dict in the format {title: {named_index: index_search(title)}}
     """
-    xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=HParams.PARSE_RANGE)
+    xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parseRange)
     res = {}
     for post in xml_parser:
         words_arr = post.toWordsArray()
@@ -175,7 +176,7 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
 
         # calc search results and fill
         for index_name, arg_index in named_indexes.items():
-            for q in tqdm.tqdm(queries,desc=f"indexing:{index_name}"):
+            for q in tqdm.tqdm(queries, desc=f"indexing:{index_name}"):
                 tmp = res.get(q, {})
                 if not search_res_include_titles:
                     tmp.update({index_name: arg_index.search(q)})
