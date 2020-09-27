@@ -5,8 +5,10 @@ from dataprocess.cleaners import cleanString
 from hparams import HParams
 from gensim.models.doc2vec import TaggedDocument
 
+titlesCache = dict()
 class XmlParser(object):
-    def __init__(self, postsFilePath, CommentsFilePath = None, trainDs = True, parseRange = None):
+    def __init__(self, postsFilePath, CommentsFilePath = None, trainDs = True, parseRange = None, cachePostTitles = False):
+        self.cachePostTitles = cachePostTitles
         datasetRange = HParams.TRAIN_DATASET_RANGE if trainDs else HParams.TEST_DATASET_RANGE
         self.minNumOfSamples = datasetRange[0]
         self.maxNumOfSamples = datasetRange[1]
@@ -16,15 +18,15 @@ class XmlParser(object):
 
         self.CommentsFilePath = CommentsFilePath
         self.postsFilePath = postsFilePath
-        self.titlesCache = dict()
 
     def preproccessAttributes(self, post: Post):
         post.body = cleanString(post.body)
         post.title = cleanString(post.title)
         return post
 
-    def getPostTitle(self, postId):
-        return self.titlesCache.get(postId)
+    @staticmethod
+    def getPostTitle(postId):
+        return titlesCache.get(postId)
 
     def getSentsGenerator(self, tagged=False):
         postsIter = iter(self)
@@ -62,7 +64,7 @@ class XmlParser(object):
                     continue
                 if featureExtractor:
                     res = featureExtractor.get_feature_batch(res)
-                self.titlesCache[post.id] = post.toWordsArray()
+
                 yield res
         return gen
 
@@ -78,6 +80,9 @@ class XmlParser(object):
                     if numOfPostsTaken < self.minNumOfSamples:
                         continue
                     res = self.preproccessAttributes(Post(element.attrib, postAnswers))
+                    if res.id not in titlesCache and self.cachePostTitles:
+                        titlesCache[res.id] = res.toWordsArray()
+
                     yield res
                     if numOfPostsTaken == self.maxNumOfSamples:
                         break

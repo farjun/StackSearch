@@ -1,8 +1,10 @@
+import heapq
 import os
 import pickle
 from datasketch import MinHash, MinHashLSH
 from typing import List, Union
 
+from dataprocess.parser import XmlParser
 from hparams import HParams
 import json
 
@@ -11,7 +13,7 @@ from index.utils import createDirIfNotExists
 
 class MinHashIndex(object):
 
-    def __init__(self, indexPath, overwrite=False, hash_func=None, threshold=0.5, num_perm=128):
+    def __init__(self, indexPath, overwrite=False, hash_func=None, threshold=0.001, num_perm=128):
         self.indexPath = indexPath
         self.num_perm = num_perm
         createDirIfNotExists(indexPath)
@@ -62,7 +64,14 @@ class MinHashIndex(object):
     def search(self, text: Union[List[str], str], result_limit=10):
         m = self.sentence_minhash(text)
         result = self.lsh.query(m)
+        if len(result) > result_limit:
+            titles = [XmlParser.getPostTitle(postId) for postId in result]
+            return heapq.nlargest(result_limit, titles, key= lambda title: self.compouteJaccardSim(m,title))
+
         return result[:result_limit]
+
+    def compouteJaccardSim(self, m, title : str):
+        return self.sentence_minhash(title).jaccard(m)
 
     def size(self):
         return self.config['indexSize']
