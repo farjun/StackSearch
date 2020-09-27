@@ -16,11 +16,15 @@ class XmlParser(object):
 
         self.CommentsFilePath = CommentsFilePath
         self.postsFilePath = postsFilePath
+        self.titlesCache = dict()
 
     def preproccessAttributes(self, post: Post):
         post.body = cleanString(post.body)
         post.title = cleanString(post.title)
         return post
+
+    def getPostTitle(self, postId):
+        return self.titlesCache.get(postId)
 
     def getSentsGenerator(self, tagged=False):
         postsIter = iter(self)
@@ -58,6 +62,7 @@ class XmlParser(object):
                     continue
                 if featureExtractor:
                     res = featureExtractor.get_feature_batch(res)
+                self.titlesCache[post.id] = post.toWordsArray()
                 yield res
         return gen
 
