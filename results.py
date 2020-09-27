@@ -161,7 +161,7 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
     """
     xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parseRange)
     res = {}
-    for post in xml_parser:
+    for post in tqdm.tqdm(xml_parser, total=parseRange[1] - parseRange[0], desc="xml_parser"):
         words_arr = post.toWordsArray()
         if len(words_arr) == 0:
             continue
@@ -176,7 +176,7 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
 
         # calc search results and fill
         for index_name, arg_index in named_indexes.items():
-            for q in tqdm.tqdm(queries, desc=f"indexing:{index_name}"):
+            for q in queries:
                 tmp = res.get(q, {})
                 if not search_res_include_titles:
                     tmp.update({index_name: arg_index.search(q)})
