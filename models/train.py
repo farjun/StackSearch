@@ -189,6 +189,9 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
         nnHashEncoder.save()
         HParams.AMOUNT_TO_SWAP = random.randint(1,HParams.MAX_AMOUNT_TO_SWAP)
         HParams.AMOUNT_TO_DROP = random.randint(1,HParams.MAX_AMOUNT_TO_DROP)
+        ds = resolve_data_set(dataset_type, amount_to_drop=HParams.AMOUNT_TO_DROP,
+                              amount_to_swap=HParams.AMOUNT_TO_SWAP)
+
         for toReportMany in trainReportStuff.values():
             for toReport in toReportMany:
                 toReport.reset_states()

@@ -6,10 +6,13 @@ from hparams import HParams
 from gensim.models.doc2vec import TaggedDocument
 
 class XmlParser(object):
-    def __init__(self, postsFilePath, CommentsFilePath = None, trainDs = True):
+    def __init__(self, postsFilePath, CommentsFilePath = None, trainDs = True, parseRange = None):
         datasetRange = HParams.TRAIN_DATASET_RANGE if trainDs else HParams.TEST_DATASET_RANGE
         self.minNumOfSamples = datasetRange[0]
         self.maxNumOfSamples = datasetRange[1]
+        if parseRange:
+            self.minNumOfSamples = parseRange[0]
+            self.maxNumOfSamples = parseRange[1]
 
         self.CommentsFilePath = CommentsFilePath
         self.postsFilePath = postsFilePath
