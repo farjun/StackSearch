@@ -10,30 +10,6 @@ from pprint import pprint
 from xxhash import xxh32
 
 
-def autoencoder_vecs_save_meta(indexType=NewMinHashIndex, indexPath=None):
-    import io
-    xmlParser = XmlParser(HParams.filePath)
-    indexPath = indexPath or os.path.join(os.path.dirname(HParams.filePath), "index")
-    index = indexType(indexPath, overwrite=True)
-    hasher = getNNHashEncoder()
-    vecsTsvPath = os.path.join(os.path.dirname(HParams.filePath), "autoencoder-vecs.tsv")
-    metaTsvPath = os.path.join(os.path.dirname(HParams.filePath), "autoencoder-meta.tsv")
-    out_vecs = io.open(vecsTsvPath, 'w', encoding='utf-8')
-    out_meta = io.open(metaTsvPath, 'w', encoding='utf-8')
-    out_meta.write(f"ID\tTitle\tEncoding\n")
-    for post in tqdm.tqdm(xmlParser):
-        wordsArr = post.toWordsArray()
-        if len(wordsArr) == 0:
-            continue
-        encodedVecs = hasher.encode_batch(wordsArr)
-        index.insert(post.id, encodedVecs)
-        out_meta.write(f"{post.id}\t{post.title}\t{encodedVecs}\n")
-        out_vecs.write('\t'.join([str(x) for x in encodedVecs]) + "\n")
-    index.save()
-    out_vecs.close()
-    out_meta.close()
-    return index
-
 
 def W2V_embedding_projector():
     import io
@@ -92,6 +68,25 @@ class ResultFactory(object):
 
         return NNHashEncoder(model, discriminator, feature_extractor, restore_last=True,
                              chkp_path=self.trained_weights_path)
+
+    def autoencoder_vecs_save_meta(self, on_train_data=True):
+        import io
+        xmlParser = XmlParser(HParams.filePath, trainDs=on_train_data)
+        hasher = self.get_hash_encoder()
+        vecsTsvPath = os.path.join(os.path.dirname(HParams.filePath), "autoencoder-vecs.tsv")
+        metaTsvPath = os.path.join(os.path.dirname(HParams.filePath), "autoencoder-meta.tsv")
+        out_vecs = io.open(vecsTsvPath, 'w', encoding='utf-8')
+        out_meta = io.open(metaTsvPath, 'w', encoding='utf-8')
+        out_meta.write(f"ID\tTitle\tEncoding\n")
+        for post in tqdm.tqdm(xmlParser):
+            wordsArr = post.toWordsArray()
+            if len(wordsArr) == 0:
+                continue
+            encodedVecs = hasher.encode_batch(wordsArr)
+            out_meta.write(f"{post.id}\t{post.title}\t{encodedVecs}\n")
+            out_vecs.write('\t'.join([str(x) for x in encodedVecs]) + "\n")
+        out_vecs.close()
+        out_meta.close()
 
     def fill_and_save_index(self, index_path=None, jaccard_threshold=None, on_train_data=True):
         """
@@ -164,6 +159,7 @@ def fetch_post_by_id(id: str):
 
 def compare_searches(search_res_include_titles=False, on_train_data=True, to_drop=1, **named_indexes):
     """
+    :param search_res_include_titles: if True, the result of search will include also the corresponding title.
     :param on_train_data: passed to XmlParser as trainDs
     :param to_drop: amount of words to drop in second search
     :param named_indexes: passed minhash indexes
@@ -231,13 +227,19 @@ if __name__ == '__main__':
     results_dict = compare_searches(search_res_include_titles=False, on_train_data=True, default_hash_index=index_1, our_hash_index=index_2, additional_index=index_3,
                                     xxhash_index=index_4, sha3_hash_index=index_5)
 
-    # To print also the titles corresponding to returned ids in result
+    # To print also the titles corresponding to returned ids in result, note that its inefficient
     # results_dict = compare_searches(search_res_include_titles=True, on_train_data=True, default_hash_index=index_1,
     #                                 our_hash_index=index_2)
 
+    HParams.OUTPUT_DIM = 4
+    four_dim_vecs_index = ResultFactory(use_default_ds_hash=False,
+                                        trained_weights_path="checkpoints/train_SimpleFCNAutoencoder_4_train_size_(0, "
+                                                             "100)")
+    four_dim_vecs_index.autoencoder_vecs_save_meta()
+
     """
      sampled output of compare_searches:
-    -----------------
+    ------------------------------------
     Note how our hash in this case performed better with the manipulated title in this examples:
     'subsonic nhibernate': {'additional_index': ['6222', '6210', '1383', '9473'],
                          'default_hash_index': [],
