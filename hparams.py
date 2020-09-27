@@ -11,7 +11,7 @@ class HParams:
     DATASET = 'titles'
     TRAIN_DATASET_RANGE = (0, 100000)
     TEST_DATASET_RANGE = (100000, 101000)
-    PARSE_RANGE = (0, 50)
+    PARSE_RANGE = (0, 800)
     CROSS_ENTROPY_LOSS_LAMBDA = 1
     RECONSTRUCTION_LOSS_LAMBDA = 1
     filePath = path.join("data", "Posts.xml")

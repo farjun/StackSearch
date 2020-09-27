@@ -13,7 +13,7 @@ from index.utils import createDirIfNotExists
 
 class MinHashIndex(object):
 
-    def __init__(self, indexPath, overwrite=False, hash_func=None, threshold=0.001, num_perm=128):
+    def __init__(self, indexPath, overwrite=False, hash_func=None, threshold=0.00001, num_perm=128):
         self.indexPath = indexPath
         self.num_perm = num_perm
         createDirIfNotExists(indexPath)

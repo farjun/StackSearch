@@ -40,7 +40,7 @@ class ResultFactory(object):
 
     def __init__(self, use_default_ds_hash=False, hash_override=None,
                  model_type=None, train_range=None,
-                 jaccard_threshold=0.5, debug_hash_function=False):
+                 jaccard_threshold=0.0005, debug_hash_function=False):
         self.train_range = train_range if train_range else HParams.TRAIN_DATASET_RANGE
         self.model_type = model_type if model_type else HParams.MODEL_TYPE
         self.jaccard_threshold = jaccard_threshold
@@ -88,7 +88,7 @@ class ResultFactory(object):
         :param jaccard_threshold: Jaccard similarity thershold for the LSH Minhash queries
         :return:
         """
-        xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parse_range)
+        xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parse_range, cachePostTitles = True)
         index_path = index_path or self.index_path
         index = NewMinHashIndex(index_path, overwrite=True, threshold=jaccard_threshold or self.jaccard_threshold,
                                 hash_func=self.hash)

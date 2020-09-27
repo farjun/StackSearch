@@ -196,7 +196,7 @@ if __name__ == '__main__':
 #     ])
 
 
-    index_ = NewMinHashIndex(indexPath, overwrite=True, threshold=0.5, hash_func=trained_model_hash)
+    index_ = NewMinHashIndex(indexPath, overwrite=True, threshold=0.00001, hash_func=trained_model_hash)
     #OMER
 
     index_.insert(4, [' '.join(cleanQuery("Determine a user's timezone"))])
