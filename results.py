@@ -1,4 +1,6 @@
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+import os
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from main import *
 from models.DabaCnnAutoencoder import DabaCnnAutoencoder
 from models.SimpleCnnAutoencoder import SimpleCnnAutoencoder
@@ -37,11 +39,11 @@ def W2V_embedding_projector():
 class ResultFactory(object):
 
     def __init__(self, use_default_ds_hash=False, hash_override=None,
-                 model_type=HParams.MODEL_TYPE, train_range=HParams.TRAIN_DATASET_RANGE,
+                 model_type=None, train_range=None,
                  jaccard_threshold=0.5, debug_hash_function=False):
-        self.train_range = train_range
+        self.train_range = train_range if train_range else HParams.TRAIN_DATASET_RANGE
+        self.model_type = model_type if model_type else HParams.MODEL_TYPE
         self.jaccard_threshold = jaccard_threshold
-        self.model_type = model_type
         self.encoder = self.get_hash_encoder()
         self.debug_hash_function = debug_hash_function
         if hash_override:
@@ -51,7 +53,7 @@ class ResultFactory(object):
         else:
             self.hash = self.trained_model_hash
 
-        self.index_path = os.path.join(os.path.dirname(HParams.filePath), "index")
+        self.index_path = os.path.join(os.path.dirname(HParams.filePath), f"index")
         self.index = None
 
     def get_hash_encoder(self):
@@ -185,7 +187,9 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
 
 if __name__ == '__main__':
     # usage examples
-
+    HParams.MODEL_TYPE = "CNN"
+    HParams.TRAIN_DATASET_RANGE = (0, 1000)
+    # HParams.MODEL_TYPE = "FCN"
     # with default datasketch index hash
     with_default_hash = ResultFactory(use_default_ds_hash=True)
     index_1 = with_default_hash.fill_and_save_index()
