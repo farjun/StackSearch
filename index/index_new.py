@@ -13,7 +13,7 @@ from index.utils import createDirIfNotExists
 
 class MinHashIndex(object):
 
-    def __init__(self, indexPath, overwrite=False, hash_func=None, threshold=0.00001, num_perm=128):
+    def __init__(self, indexPath, overwrite=False, hash_func=None, threshold=0.5, num_perm=128):
         self.indexPath = indexPath
         self.num_perm = num_perm
         createDirIfNotExists(indexPath)
@@ -65,8 +65,9 @@ class MinHashIndex(object):
         m = self.sentence_minhash(text)
         result = self.lsh.query(m)
         if len(result) > result_limit:
-            titles = [XmlParser.getPostTitle(postId) for postId in result]
-            return heapq.nlargest(result_limit, titles, key= lambda title: self.compouteJaccardSim(m,title))
+            post_title_tups = [(postId, XmlParser.getPostTitle(postId)) for postId in result]
+            result = heapq.nlargest(result_limit, post_title_tups, key=lambda post_title_tup: self.compouteJaccardSim(m, post_title_tup[1]))
+            result = [_[0] for _ in result]
 
         return result[:result_limit]
 
