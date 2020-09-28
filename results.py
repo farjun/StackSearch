@@ -204,7 +204,7 @@ def results_dict_as_df(data_dict):
                 df_dict[index_name].append(post_id in index_search_res)
             else:
                 df_dict[index_name] = [post_id in index_search_res]
-# df_dict[index_name] = tmp.append(post_id in index_search_res)
+    # df_dict[index_name] = tmp.append(post_id in index_search_res)
     result_df = pd.DataFrame(data=df_dict)
     return result_df
 
@@ -242,10 +242,8 @@ def main():
     results_dict = compare_searches(search_res_include_titles=False, on_train_data=True, **indexes)
 
     df = results_dict_as_df(results_dict)
-    print(df)
-
     agg_df = df.agg({index_name: ['sum'] for index_name in indexes.keys()})
-    print(agg_df)
+    return df, agg_df
     # To print also the titles corresponding to returned ids in result, note that its inefficient
     # results_dict = compare_searches(search_res_include_titles=True, on_train_data=True, default_hash_index=index_1,
     #                                 our_hash_index=index_2)
@@ -254,5 +252,8 @@ def main():
     # four_dim_vecs_index = ResultFactory(use_default_ds_hash=False)
     # four_dim_vecs_index.autoencoder_vecs_save_meta()
 
+
 if __name__ == '__main__':
-    main()
+    df, agg_df = main()
+    print(df)
+    print(agg_df)
