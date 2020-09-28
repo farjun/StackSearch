@@ -67,11 +67,11 @@ class MinHashIndex(object):
         result = self.lsh.query(m)
         if len(result) > result_limit:
             post_title_tups = [(postId, XmlParser.getPostTitle(postId)) for postId in result]
-            result = heapq.nlargest(result_limit, post_title_tups, key=lambda post_title_tup: self.compouteJaccardSim(m, post_title_tup[1]))
+            result = heapq.nlargest(result_limit, post_title_tups, key=lambda post_title_tup: self.compute_jaccard_sim(m, post_title_tup[1]))
             result = [_[0] for _ in result]
         return result[:result_limit]
 
-    def compouteJaccardSim(self, m, title : str):
+    def compute_jaccard_sim(self, m, title : str):
         return self.sentence_minhash(title).jaccard(m)
 
     def size(self):
