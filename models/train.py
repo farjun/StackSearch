@@ -191,6 +191,8 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=1, progress_per_step=1,
         HParams.AMOUNT_TO_DROP = max(0, HParams.MAX_AMOUNT_TO_DROP - int(epoch/epochs)*HParams.MAX_AMOUNT_TO_DROP)
         ds = resolve_data_set(dataset_type, amount_to_drop=HParams.AMOUNT_TO_DROP,
                               amount_to_swap=HParams.AMOUNT_TO_SWAP)
+        print("new AMOUNT_TO_SWAP: " + str(HParams.AMOUNT_TO_SWAP))
+        print("new AMOUNT_TO_DROP: " + str(HParams.AMOUNT_TO_DROP))
 
         for toReportMany in trainReportStuff.values():
             for toReport in toReportMany:
