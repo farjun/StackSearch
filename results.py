@@ -1,16 +1,14 @@
 import os
+from typing import Dict
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from main import *
-from models.DabaCnnAutoencoder import DabaCnnAutoencoder
-from models.SimpleCnnAutoencoder import SimpleCnnAutoencoder
-from models.SimpleFCNAutoencoder import SimpleFCNAutoencoder
-from models.YabaDabaDiscriminator import DabaDiscriminator
 from models.api import NNHashEncoder
 import models
 import random
 from pprint import pprint
 from xxhash import xxh32
+import pandas as pd
 
 
 def W2V_embedding_projector():
@@ -81,30 +79,33 @@ class ResultFactory(object):
         out_meta.close()
 
     def fill_and_save_index(self, index_path=None, jaccard_threshold=None, on_train_data=True,
-                            parse_range=HParams.PARSE_RANGE):
+                            parse_range=HParams.PARSE_RANGE, pass_as_str=True):
         """
         :param parse_range: passed to the xml parser
         :param index_path: optional index save path
         :param jaccard_threshold: Jaccard similarity thershold for the LSH Minhash queries
         :return:
         """
-        xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parse_range, cachePostTitles = True)
+        xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parse_range, cachePostTitles=True)
         index_path = index_path or self.index_path
         index = NewMinHashIndex(index_path, overwrite=True, threshold=jaccard_threshold or self.jaccard_threshold,
-                                hash_func=self.hash)
+                                hash_func=self.hash, pass_as_str=pass_as_str)
         for post in tqdm.tqdm(xml_parser, total=parse_range[1] - parse_range[0]):
             words_arr = post.toWordsArray()
             if len(words_arr) == 0:
                 continue
-            index.insert(post.id, ' '.join(words_arr))
+            if pass_as_str:
+                index.insert(post.id, ' '.join(words_arr))
+            else:
+                index.insert(post.id, words_arr)
         # index.save()
         self.index = index
         return index
 
-    def load_index(self, index_path=None):
-        index_path = index_path or self.index_path
-        self.index = NewMinHashIndex(index_path, overwrite=False)
-        return self.index
+    # def load_index(self, index_path=None):
+    #     index_path = index_path or self.index_path
+    #     self.index = NewMinHashIndex(index_path, overwrite=False)
+    #     return self.index
 
     @staticmethod
     def xxhash(data):
@@ -167,25 +168,45 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
             continue
 
         # queries
-        title = ' '.join(words_arr)
-        queries = [title]
+        title = ' '.join(words_arr)  # as str
+        as_str_queries = [title]
+        as_lst_queries = [words_arr.copy()]
         for _ in range(to_drop):
             words_arr.pop(random.randrange(len(words_arr)))
         changed_title = ' '.join(words_arr)
-        queries.append(changed_title)
-
+        as_str_queries.append(changed_title)
+        as_lst_queries.append(words_arr)
         # calc search results and fill
         for index_name, arg_index in named_indexes.items():
+            if not arg_index.pass_as_str:
+                queries = as_lst_queries
+            else:
+                queries = as_str_queries
             for q in queries:
-                tmp = res.get(q, {})
+                tmp = res.get((post.id, ' '.join(q)), {}) if isinstance(q, list) else res.get((post.id, q), {})
                 if not search_res_include_titles:
                     tmp.update({index_name: arg_index.search(q)})
                 else:
                     tmp.update({index_name: [(id, fetch_post_by_id(id).title) for id in arg_index.search(q)]})
-                res[q] = tmp
+                res[(post.id, ' '.join(q)) if isinstance(q, list) else (post.id, q)] = tmp
 
     pprint(res)
     return res
+
+
+def results_dict_as_df(data_dict):
+    df_dict = {'post_id': [], 'post_title': []}
+    for (post_id, title), by_index_res in data_dict.items():
+        df_dict['post_id'].append(post_id)
+        df_dict['post_title'].append(title)
+        for index_name, index_search_res in by_index_res.items():
+            if index_name in df_dict:
+                df_dict[index_name].append(post_id in index_search_res)
+            else:
+                df_dict[index_name] = [post_id in index_search_res]
+# df_dict[index_name] = tmp.append(post_id in index_search_res)
+    result_df = pd.DataFrame(data=df_dict)
+    return result_df
 
 
 if __name__ == '__main__':
@@ -194,33 +215,37 @@ if __name__ == '__main__':
     # HParams.TRAIN_DATASET_RANGE = (0, 1000)
     # HParams.MODEL_TYPE = "FCN"
     # with default datasketch index hash
-    with_default_hash = ResultFactory(use_default_ds_hash=True)
+    with_default_hash = ResultFactory(use_default_ds_hash=True, jaccard_threshold=0.5)
     index_1 = with_default_hash.fill_and_save_index()
 
     # with latest trained auto-encoder based hash
-    with_our_hash = ResultFactory(use_default_ds_hash=False)
+    with_our_hash = ResultFactory(use_default_ds_hash=False, jaccard_threshold=0.5)
     index_2 = with_our_hash.fill_and_save_index()
 
     # with trained autoencoder from trained_weights_path based hash and jaccard similarity threshold set to 0.8
-    additional_index = ResultFactory(use_default_ds_hash=False, jaccard_threshold=0.8)
-    index_3 = additional_index.fill_and_save_index(
-        on_train_data=True)  # note that on_train_data passed to trainDs in XmlParser
+    additional_index = ResultFactory(use_default_ds_hash=False, jaccard_threshold=0.5)
+    index_3 = additional_index.fill_and_save_index(on_train_data=True)
 
     # with xxhash library based hash and jaccard similarity threshold set to 0.5
     xxhash_index = ResultFactory(hash_override=ResultFactory.xxhash, jaccard_threshold=0.5)
-    index_4 = xxhash_index.fill_and_save_index(on_train_data=True)
+    index_4 = xxhash_index.fill_and_save_index(on_train_data=True, pass_as_str=False)
 
     # with sha3 based hash and jaccard similarity threshold set to 0.5
     sha3_hash_index = ResultFactory(hash_override=ResultFactory.sha3_hash, jaccard_threshold=0.5)
-    index_5 = sha3_hash_index.fill_and_save_index(on_train_data=True)
+    index_5 = sha3_hash_index.fill_and_save_index(on_train_data=True, pass_as_str=False)
 
     # compare_searches takes Minhash index objects as named arguments and runs searches from all indexes on
     # either trained data or test. on each post the real title is queried along with a manipulated title with
     # to_drop dropped words
-    results_dict = compare_searches(search_res_include_titles=False, on_train_data=True, default_hash_index=index_1,
-                                    our_hash_index=index_2, additional_index=index_3,
-                                    xxhash_index=index_4, sha3_hash_index=index_5)
+    indexes = dict(default_hash_index=index_1, our_hash_index=index_2, additional_index=index_3,
+                   xxhash_index=index_4, sha3_hash_index=index_5)
+    results_dict = compare_searches(search_res_include_titles=False, on_train_data=True, **indexes)
 
+    df = results_dict_as_df(results_dict)
+    print(df)
+
+    agg_df = df.agg({index_name: ['sum'] for index_name in indexes.keys()})
+    print(agg_df)
     # To print also the titles corresponding to returned ids in result, note that its inefficient
     # results_dict = compare_searches(search_res_include_titles=True, on_train_data=True, default_hash_index=index_1,
     #                                 our_hash_index=index_2)

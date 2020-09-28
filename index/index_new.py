@@ -13,12 +13,13 @@ from index.utils import createDirIfNotExists
 
 class MinHashIndex(object):
 
-    def __init__(self, indexPath, overwrite=False, hash_func=None, threshold=0.5, num_perm=128):
+    def __init__(self, indexPath, overwrite=False, hash_func=None, threshold=0.5, num_perm=128, pass_as_str=True):
+        self.pass_as_str = pass_as_str
         self.indexPath = indexPath
         self.num_perm = num_perm
         createDirIfNotExists(indexPath)
         self.indexPickleFilePath = os.path.join(indexPath, "main_index_new")
-        self._hash_func = hash_func
+        self.hashfunc = hash_func
         self._threshold = threshold
         self.configFilePath = os.path.join(indexPath, "config")
         self.config = dict(indexSize=0)
@@ -47,8 +48,8 @@ class MinHashIndex(object):
                 print("Warning, Config was not able to load from an empty config file")
 
     def sentence_minhash(self, text: Union[List[str], str]):
-        m = MinHash(num_perm=self.num_perm) if self._hash_func is None else MinHash(num_perm=self.num_perm,
-                                                                                    hashfunc=self._hash_func)
+        m = MinHash(num_perm=self.num_perm) if self.hashfunc is None else MinHash(num_perm=self.num_perm,
+                                                                                  hashfunc=self.hashfunc)
         text = [text] if isinstance(text, str) else text
         for word in text:
             m.update(word.encode('utf8'))
@@ -68,7 +69,6 @@ class MinHashIndex(object):
             post_title_tups = [(postId, XmlParser.getPostTitle(postId)) for postId in result]
             result = heapq.nlargest(result_limit, post_title_tups, key=lambda post_title_tup: self.compouteJaccardSim(m, post_title_tup[1]))
             result = [_[0] for _ in result]
-
         return result[:result_limit]
 
     def compouteJaccardSim(self, m, title : str):
