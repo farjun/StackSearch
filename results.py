@@ -78,7 +78,7 @@ class ResultFactory(object):
         out_meta.close()
 
     def fill_and_save_index(self, index_path=None, jaccard_threshold=None, on_train_data=True,
-                            parse_range=HParams.PARSE_RANGE, pass_as_str=True):
+                            parse_range=HParams.PARSE_RANGE, pass_as_str=True, num_perm=128):
         """
         :param parse_range: passed to the xml parser
         :param index_path: optional index save path
@@ -88,7 +88,7 @@ class ResultFactory(object):
         xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parse_range, cachePostTitles=True)
         index_path = index_path or self.index_path
         index = NewMinHashIndex(index_path, overwrite=True, threshold=jaccard_threshold or self.jaccard_threshold,
-                                hash_func=self.hash, pass_as_str=pass_as_str)
+                                hash_func=self.hash, pass_as_str=pass_as_str, num_perm=num_perm)
         for post in tqdm.tqdm(xml_parser, total=parse_range[1] - parse_range[0]):
             words_arr = post.toWordsArray()
             if len(words_arr) == 0:
