@@ -187,8 +187,8 @@ def train_and_test_yabadaba(epochs=1, epochs_offset=1, progress_per_step=1,
             step += 1
 
         nnHashEncoder.save()
-        HParams.AMOUNT_TO_SWAP = max(0, HParams.MAX_AMOUNT_TO_SWAP - int(epochs/epoch)*HParams.MAX_AMOUNT_TO_SWAP)
-        HParams.AMOUNT_TO_DROP = max(0, HParams.MAX_AMOUNT_TO_DROP - int(epochs/epoch)*HParams.MAX_AMOUNT_TO_DROP)
+        HParams.AMOUNT_TO_SWAP = max(0, HParams.MAX_AMOUNT_TO_SWAP - int(epoch/epochs)*HParams.MAX_AMOUNT_TO_SWAP)
+        HParams.AMOUNT_TO_DROP = max(0, HParams.MAX_AMOUNT_TO_DROP - int(epoch/epochs)*HParams.MAX_AMOUNT_TO_DROP)
         ds = resolve_data_set(dataset_type, amount_to_drop=HParams.AMOUNT_TO_DROP,
                               amount_to_swap=HParams.AMOUNT_TO_SWAP)
 
