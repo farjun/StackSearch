@@ -189,7 +189,6 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
                     tmp.update({index_name: [(id, fetch_post_by_id(id).title) for id in arg_index.search(q)]})
                 res[(post.id, ' '.join(q)) if isinstance(q, list) else (post.id, q)] = tmp
 
-    pprint(res)
     return res
 
 
@@ -239,6 +238,7 @@ def main():
     indexes = dict(default_hash_index=index_1, fcn_hash=index_2, cnn_hash=index_3,
                    xxhash_index=index_4, sha3_hash_index=index_5)
     results_dict = compare_searches(search_res_include_titles=False, on_train_data=True, **indexes)
+    # pprint(results_dict)
 
     df = results_dict_as_df(results_dict)
     agg_df = df.agg({index_name: ['sum'] for index_name in indexes.keys()})
