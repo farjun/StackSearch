@@ -157,7 +157,7 @@ def getTestStep(model):
     return test_step, {"Gen": [reconstructionLosssReport, binaryLossReport, lossReport]}
 
 
-def train_and_test_yabadaba(epochs=1, epochs_offset=0, progress_per_step=1,
+def train_and_test_yabadaba(epochs=1, epochs_offset=1, progress_per_step=1,
                             save_result_per_epoch=5, restore_last=False, dataset_type: str = HParams.DATASET):
     ds = resolve_data_set(dataset_type, amount_to_drop=HParams.AMOUNT_TO_DROP, amount_to_swap=HParams.AMOUNT_TO_SWAP)
     testDs = iter(resolve_data_set(dataset_type, trainDs=False).repeat(-1))
