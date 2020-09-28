@@ -209,7 +209,7 @@ def results_dict_as_df(data_dict):
     return result_df
 
 
-if __name__ == '__main__':
+def main():
     # usage examples
     # HParams.MODEL_TYPE = "CNN"
     # HParams.TRAIN_DATASET_RANGE = (0, 1000)
@@ -254,26 +254,5 @@ if __name__ == '__main__':
     # four_dim_vecs_index = ResultFactory(use_default_ds_hash=False)
     # four_dim_vecs_index.autoencoder_vecs_save_meta()
 
-    """
-     sampled output of compare_searches:
-    ------------------------------------
-    Note how our hash in this case performed better with the manipulated title in this examples:
-    'subsonic nhibernate': {'additional_index': ['6222', '6210', '1383', '9473'],
-                         'default_hash_index': [],
-                         'our_hash_index': ['6222', '6210', '1383', '9473']},
-    'subsonic vs nhibernate': {'additional_index': ['1384'],
-                            'default_hash_index': ['1384'],
-                            'our_hash_index': ['1384']},
-                            
-    Also:
-     'using mstest': {'additional_index': ['1383', '9473', '6222', '6210'],
-                  'default_hash_index': [],
-                  'our_hash_index': ['1383', '9473', '6222', '6210'],
-                  'sha3_hash_index': [],
-                  'xxhash_index': []},
-     'using mstest cruisecontrolnet': {'additional_index': ['1314'],
-                                   'default_hash_index': ['1314'],
-                                   'our_hash_index': ['1314'],
-                                   'sha3_hash_index': ['1314'],
-                                   'xxhash_index': ['1314']},
-    """
+if __name__ == '__main__':
+    main()
