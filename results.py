@@ -9,6 +9,7 @@ import random
 from pprint import pprint
 from xxhash import xxh32
 import pandas as pd
+import io
 
 
 def W2V_embedding_projector():
@@ -58,16 +59,17 @@ class ResultFactory(object):
             restore_last=True, model_type=self.model_type, train_range=self.train_range
         )
 
-    def autoencoder_vecs_save_meta(self, on_train_data=True):
-        import io
-        xmlParser = XmlParser(HParams.filePath, trainDs=on_train_data)
+    def autoencoder_vecs_save_meta(self, on_train_data=True, parse_range=HParams.PARSE_RANGE):
+        xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parse_range)
         hasher = self.get_hash_encoder()
-        vecsTsvPath = os.path.join(os.path.dirname(HParams.filePath), "autoencoder-vecs.tsv")
-        metaTsvPath = os.path.join(os.path.dirname(HParams.filePath), "autoencoder-meta.tsv")
-        out_vecs = io.open(vecsTsvPath, 'w', encoding='utf-8')
-        out_meta = io.open(metaTsvPath, 'w', encoding='utf-8')
+        vecs_tsv_path = os.path.join(os.path.dirname(HParams.filePath),
+                                     f"autoencoder-vecs-{self.model_type}-{HParams.OUTPUT_DIM}.tsv")
+        meta_tsv_path = os.path.join(os.path.dirname(HParams.filePath),
+                                     f"autoencoder-meta-{self.model_type}-{HParams.OUTPUT_DIM}.tsv")
+        out_vecs = io.open(vecs_tsv_path, 'w', encoding='utf-8')
+        out_meta = io.open(meta_tsv_path, 'w', encoding='utf-8')
         out_meta.write(f"ID\tTitle\tEncoding\n")
-        for post in tqdm.tqdm(xmlParser):
+        for post in tqdm.tqdm(xml_parser, total=parse_range[1]-parse_range[0]):
             wordsArr = post.toWordsArray()
             if len(wordsArr) == 0:
                 continue
@@ -209,11 +211,33 @@ def results_dict_as_df(data_dict):
     return result_df
 
 
+def save_meta():
+    tmp = HParams.OUTPUT_DIM
+    HParams.OUTPUT_DIM = 2
+    fcn_2d = ResultFactory(use_default_ds_hash=False, model_type='FCN')
+    cnn_2d = ResultFactory(use_default_ds_hash=False, model_type='CNN')
+    fcn_2d.autoencoder_vecs_save_meta()
+    cnn_2d.autoencoder_vecs_save_meta()
+    HParams.OUTPUT_DIM = tmp
+
+    tmp = HParams.OUTPUT_DIM
+    HParams.OUTPUT_DIM = 3
+    fcn_3d = ResultFactory(use_default_ds_hash=False, model_type='FCN')
+    cnn_3d = ResultFactory(use_default_ds_hash=False, model_type='CNN')
+    fcn_3d.autoencoder_vecs_save_meta()
+    cnn_3d.autoencoder_vecs_save_meta()
+    HParams.OUTPUT_DIM = tmp
+
+
 def main():
     # usage examples
     # HParams.MODEL_TYPE = "CNN"
     # HParams.TRAIN_DATASET_RANGE = (0, 1000)
     # HParams.MODEL_TYPE = "FCN"
+
+    # save_meta()
+    # return None, None
+
     # with default datasketch index hash
     with_default_hash = ResultFactory(use_default_ds_hash=True, jaccard_threshold=0.5)
     index_1 = with_default_hash.fill_and_save_index(pass_as_str=False)
@@ -245,7 +269,6 @@ def main():
     df = results_dict_as_df(results_dict)
     agg_df = df.agg({index_name: ['sum'] for index_name in indexes.keys()})
     return df, agg_df
-
 
 
 if __name__ == '__main__':
