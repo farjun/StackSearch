@@ -78,13 +78,14 @@ class ResultFactory(object):
         out_meta.close()
 
     def fill_and_save_index(self, index_path=None, jaccard_threshold=None, on_train_data=True,
-                            parse_range=HParams.PARSE_RANGE, pass_as_str=True, num_perm=128):
+                            parse_range=None, pass_as_str=True, num_perm=128):
         """
         :param parse_range: passed to the xml parser
         :param index_path: optional index save path
         :param jaccard_threshold: Jaccard similarity thershold for the LSH Minhash queries
         :return:
         """
+        parse_range = parse_range or HParams.PARSE_RANGE
         xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parse_range, cachePostTitles=True)
         index_path = index_path or self.index_path
         index = NewMinHashIndex(index_path, overwrite=True, threshold=jaccard_threshold or self.jaccard_threshold,
@@ -150,7 +151,7 @@ def fetch_post_by_id(id: str):
     return None
 
 
-def compare_searches(search_res_include_titles=False, on_train_data=True, to_drop=1, parseRange=HParams.PARSE_RANGE,
+def compare_searches(search_res_include_titles=False, on_train_data=True, to_drop=1, parseRange=None,
                      **named_indexes):
     """
     :param search_res_include_titles: if True, the result of search will include also the corresponding title.
@@ -159,6 +160,7 @@ def compare_searches(search_res_include_titles=False, on_train_data=True, to_dro
     :param named_indexes: passed minhash indexes
     :return: a dict in the format {title: {named_index: index_search(title)}}
     """
+    parseRange = parseRange or HParams.PARSE_RANGE
     xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parseRange)
     res = {}
     for post in tqdm.tqdm(xml_parser, total=parseRange[1] - parseRange[0], desc="xml_parser"):
