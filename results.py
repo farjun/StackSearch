@@ -76,7 +76,7 @@ class ResultFactory(object):
             if hashfunc is None:
                 encoded_vecs = hasher.encode_batch(wordsArr)
             else:
-                encoded_vecs = np.array(struct.unpack('ff', hashfunc(bytes(' '.join(wordsArr), 'utf-8')).digest()[:8]),
+                encoded_vecs = np.array(struct.unpack('ff', hashfunc((' '.join(wordsArr)).encode('utf-8')).digest()[:8]),
                                         dtype=np.float32)
             out_meta.write(f"{post.id}\t{post.title}\t{encoded_vecs}\n")
             out_vecs.write('\t'.join([str(x) for x in encoded_vecs]) + "\n")
