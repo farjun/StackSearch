@@ -10,7 +10,7 @@ from pprint import pprint
 from xxhash import xxh32
 import pandas as pd
 import io
-
+import numpy as np
 
 def W2V_embedding_projector():
     import io
@@ -59,7 +59,7 @@ class ResultFactory(object):
             restore_last=True, model_type=self.model_type, train_range=self.train_range
         )
 
-    def autoencoder_vecs_save_meta(self, on_train_data=True, parse_range=HParams.PARSE_RANGE):
+    def autoencoder_vecs_save_meta(self, on_train_data=True, parse_range=HParams.PARSE_RANGE, hashfunc=None):
         xml_parser = XmlParser(HParams.filePath, trainDs=on_train_data, parseRange=parse_range)
         hasher = self.get_hash_encoder()
         vecs_tsv_path = os.path.join(os.path.dirname(HParams.filePath),
@@ -73,9 +73,12 @@ class ResultFactory(object):
             wordsArr = post.toWordsArray()
             if len(wordsArr) == 0:
                 continue
-            encodedVecs = hasher.encode_batch(wordsArr)
-            out_meta.write(f"{post.id}\t{post.title}\t{encodedVecs}\n")
-            out_vecs.write('\t'.join([str(x) for x in encodedVecs]) + "\n")
+            if hashfunc is None:
+                encoded_vecs = hasher.encode_batch(wordsArr)
+            else:
+                encoded_vecs = np.array(struct.unpack('ff', hashfunc(' '.join(wordsArr)).digest()[:8]), dtype=np.float32)
+            out_meta.write(f"{post.id}\t{post.title}\t{encoded_vecs}\n")
+            out_vecs.write('\t'.join([str(x) for x in encoded_vecs]) + "\n")
         out_vecs.close()
         out_meta.close()
 
@@ -139,6 +142,7 @@ class ResultFactory(object):
             print('----encoded vec', encoded_vecs)
             print('----bytes', encoded_vecs_bytes)
         return struct.unpack('<I', encoded_vecs_bytes[:4])[0]
+
 
 
 def fetch_post_by_id(id: str):
@@ -211,12 +215,12 @@ def results_dict_as_df(data_dict):
     return result_df
 
 
-def save_meta():
+def save_meta(hashfunc=None):
 
     # fcn = ResultFactory(use_default_ds_hash=False, model_type='FCN')
     # fcn_2d.autoencoder_vecs_save_meta()
     cnn = ResultFactory(use_default_ds_hash=False, model_type='CNN')
-    cnn.autoencoder_vecs_save_meta()
+    cnn.autoencoder_vecs_save_meta(hashfunc=hashfunc)
 
 
 
