@@ -212,21 +212,13 @@ def results_dict_as_df(data_dict):
 
 
 def save_meta():
-    tmp = HParams.OUTPUT_DIM
-    HParams.OUTPUT_DIM = 2
-    # fcn_2d = ResultFactory(use_default_ds_hash=False, model_type='FCN')
-    # fcn_2d.autoencoder_vecs_save_meta()
-    cnn_2d = ResultFactory(use_default_ds_hash=False, model_type='CNN')
-    cnn_2d.autoencoder_vecs_save_meta()
-    HParams.OUTPUT_DIM = tmp
 
-    tmp = HParams.OUTPUT_DIM
-    HParams.OUTPUT_DIM = 3
-    # fcn_3d = ResultFactory(use_default_ds_hash=False, model_type='FCN')
-    # fcn_3d.autoencoder_vecs_save_meta()
-    cnn_3d = ResultFactory(use_default_ds_hash=False, model_type='CNN')
-    cnn_3d.autoencoder_vecs_save_meta()
-    HParams.OUTPUT_DIM = tmp
+    # fcn = ResultFactory(use_default_ds_hash=False, model_type='FCN')
+    # fcn_2d.autoencoder_vecs_save_meta()
+    cnn = ResultFactory(use_default_ds_hash=False, model_type='CNN')
+    cnn.autoencoder_vecs_save_meta()
+
+
 
 
 def main():
