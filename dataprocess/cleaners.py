@@ -2,7 +2,9 @@ from nltk.corpus import stopwords
 from io import StringIO
 from html.parser import HTMLParser
 import re
+
 englishStopWords = set(stopwords.words('english'))
+
 
 class MLStripper(HTMLParser):
     def __init__(self):
@@ -26,9 +28,12 @@ class MLStripper(HTMLParser):
 
 
 def cleanString(toClean):
+    if not toClean:  # Can Be None or ""
+        return toClean
     toClean = MLStripper.strip_tags(toClean)
     toClean = re.sub("[^a-zA-Z0-9 \n]+", "", toClean).lower()
     return toClean
+
 
 def cleanQuery(toClean):
     toClean = re.sub("[^a-zA-Z0-9 \n]+", "", toClean).lower()

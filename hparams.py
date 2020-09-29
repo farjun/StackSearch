@@ -14,7 +14,7 @@ class HParams:
     PARSE_RANGE = (0, 1000)
     CROSS_ENTROPY_LOSS_LAMBDA = 1
     RECONSTRUCTION_LOSS_LAMBDA = 1
-    filePath = path.join("data", "Posts.xml")
+    filePath = path.join("data", "Posts_Extracted.xml")
     AMOUNT_TO_DROP = 3
     MAX_AMOUNT_TO_DROP = 10
     AMOUNT_TO_SWAP = 3

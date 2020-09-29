@@ -174,10 +174,8 @@ def trained_model_hash(data):
 if __name__ == '__main__':
     # generate_w2v()
     # clear_summary()
-
-    main(epochs=30, restore_last=False, progress_per_step=10)
-
-    indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
+    main(epochs=2, restore_last=False, progress_per_step=10)
+    # indexPath = os.path.join(os.path.dirname(HParams.filePath), "index")
     # xmlParser = XmlParser(HParams.filePath)
     # index = saveYabaDabaIndex()
     # index = MinHashIndex(indexPath)
@@ -196,16 +194,16 @@ if __name__ == '__main__':
 #     ])
 
 
-    index_ = NewMinHashIndex(indexPath, overwrite=True, threshold=0.00001, hash_func=trained_model_hash)
-    #OMER
-
-    index_.insert(4, [' '.join(cleanQuery("Determine a user's timezone"))])
-    index_.insert(7, [' '.join(cleanQuery("Determine a user's timezone"))])
-    index_.insert(8, [' '.join(cleanQuery("Determine a user's timezone"))])
-    index_.insert(5, [' '.join(cleanQuery("Converting ARBG to RGB alpha blending"))])
-    index_.insert(6, [' '.join(cleanQuery("Regex: To pull out a sub-string between two tags in a string"))])
-
-    print(index_.search([' '.join(cleanQuery("Determine a user's timezone"))]))
+    # index_ = NewMinHashIndex(indexPath, overwrite=True, threshold=0.00001, hash_func=trained_model_hash)
+    # #OMER
+    #
+    # index_.insert(4, [' '.join(cleanQuery("Determine a user's timezone"))])
+    # index_.insert(7, [' '.join(cleanQuery("Determine a user's timezone"))])
+    # index_.insert(8, [' '.join(cleanQuery("Determine a user's timezone"))])
+    # index_.insert(5, [' '.join(cleanQuery("Converting ARBG to RGB alpha blending"))])
+    # index_.insert(6, [' '.join(cleanQuery("Regex: To pull out a sub-string between two tags in a string"))])
+    #
+    # print(index_.search([' '.join(cleanQuery("Determine a user's timezone"))]))
     #
     # index_.insert(4, cleanQuery("Determine a user's timezone"))
     # index_.insert(5, cleanQuery("Converting ARBG to RGB alpha blending"))
