@@ -1,6 +1,6 @@
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import os
-import tqdm
+import tqdm.auto as tqdm
 import models.train
 from dataprocess.cleaners import cleanQuery
 from dataprocess.parser import XmlParser
