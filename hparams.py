@@ -1,7 +1,7 @@
 from os import path
 
 class HParams:
-    MODEL_TYPE = 'FCN' # DABA, CNN, FCN
+    MODEL_TYPE = 'CNN' # DABA, CNN, FCN
     MODEL_MODE = 'NOT_GAN' # GAN, NOT_GAN
     LR = 1e-4
     USE_REGULARIZER = True
@@ -9,9 +9,9 @@ class HParams:
     REGULARIZER_L2 = 0.1
     REGULARIZER_L1 = 0.1
     DATASET = 'titles'
-    TRAIN_DATASET_RANGE = (0, 10000)
+    TRAIN_DATASET_RANGE = (0, 1000)
     TEST_DATASET_RANGE = (100000, 101000)
-    PARSE_RANGE = (0, 10000)
+    PARSE_RANGE = (0, 1000)
     CROSS_ENTROPY_LOSS_LAMBDA = 1
     RECONSTRUCTION_LOSS_LAMBDA = 1
     filePath = path.join("data", "Posts.xml")
