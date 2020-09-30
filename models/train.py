@@ -154,7 +154,7 @@ def getTestStep(model):
         loss = HParams.RECONSTRUCTION_LOSS_LAMBDA * reconstructionLoss
         lossReport(loss)
 
-    return test_step, {"Gen": [reconstructionLosssReport, binaryLossReport, lossReport]}
+    return test_step, {"Gen": [reconstructionLosssReport]}
 
 
 def train_and_test_yabadaba(epochs=1, epochs_offset=1, progress_per_step=1,
